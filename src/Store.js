@@ -6,9 +6,20 @@ export default function Store(config) {
         return new Store(config);
     }
 
-    this.sections = config.sections;
+    this.sections = {};
     this.transformerInstances = {};
+
+    // add sections
+    Object.keys(config.sections).forEach(sectionName => this.addSection(sectionName, config.sections[sectionName]))
 }
+
+Store.prototype.addSection = function addSection(name, section) {
+    this.sections[name] = section;
+};
+
+Store.prototype.removeSection = function removeSection(name) {
+    delete this.sections[name];
+};
 
 Store.prototype.getValuesForSelectors = function getValuesForSelectors(sections) {
     return sections.map(section => {

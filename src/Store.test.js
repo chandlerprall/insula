@@ -30,6 +30,27 @@ test('Store dispatches intents', t => {
     t.is(store.sections.people.value[0], PERSON_VALUE);
 });
 
+test('Store sections can be added / removed at run time', t => {
+    t.plan(4);
+
+    const INTENT_ADD_ITEM = 'INTENT_ADD_ITEM';
+    const addItem = Intent(INTENT_ADD_ITEM, (items, item) => {
+        t.pass();
+        return [item].concat(items);
+    });
+
+    const store = Store({
+        sections: {names: Section([], addItem)}
+    });
+    store.dispatch(INTENT_ADD_ITEM, null); // should cause 1 pass, only `names`
+
+    store.addSection('colors', Section([], addItem));
+    store.dispatch(INTENT_ADD_ITEM, null); // should cause 2 passes, both sections
+
+    store.removeSection('colors');
+    store.dispatch(INTENT_ADD_ITEM, null); // should cause 1 pass, only `names`
+});
+
 test('Store accepts transformer subscriptions and unsubscriptions', t => {
     t.plan(1);
 
