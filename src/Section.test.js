@@ -19,6 +19,25 @@ test('Section#handleIntent fires intents', t => {
     section.handleIntent('INTENT_TEST');
 });
 
+test('Section intents can be added and removed', t => {
+    t.plan(3);
+
+    const section = Section(null);
+
+    const INTENT = 'INTENT_TEST';
+    const intent = Intent(INTENT, () => t.pass());
+
+    section.addIntent(intent);
+    section.addIntent(intent);
+    section.handleIntent(INTENT); // expect 2 passes
+
+    section.removeIntent(intent);
+    section.handleIntent(INTENT); // expect 1 pass
+
+    section.removeIntent(intent);
+    section.handleIntent(INTENT); // expect 0 passes
+});
+
 test('Section#handleIntent updates section value', t => {
     t.plan(1);
 
