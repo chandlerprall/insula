@@ -93,3 +93,25 @@ test('Section#handleIntent returns correct value', t => {
     t.is(section.handleIntent(INTENT_ONE), true);
     t.is(section.handleIntent(INTENT_TWO), false);
 });
+
+test('Section#handleIntent ignores when a lone intent returns `undefined`', t => {
+    t.plan(1);
+
+    const SECTION_VALUE = {};
+    const intentTest = Intent('INTENT_TEST', () => undefined);
+    const section = Section(SECTION_VALUE, intentTest);
+    section.handleIntent('INTENT_TEST');
+    t.is(section.value, SECTION_VALUE);
+});
+
+test('Section#handleIntent ignores when one out of many intents returns `undefined`', t => {
+    t.plan(1);
+
+    const RETURN_VALUE = {};
+    const ITENT_NAME = 'INTENT_TEST';
+    const intentOne = Intent(ITENT_NAME, () => RETURN_VALUE);
+    const intentTwo = Intent(ITENT_NAME, () => undefined);
+    const section = Section({}, intentOne, intentTwo);
+    section.handleIntent(ITENT_NAME);
+    t.is(section.value, RETURN_VALUE);
+});

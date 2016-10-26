@@ -41,7 +41,9 @@ Section.prototype.handleIntent = function handleIntent(intentName, payload) {
     } else {
         this.value = (this.intents[intentName] || []).reduce(
             (value, subscribedIntent) => {
-                return subscribedIntent.mutate(value, payload);
+                const intentReturnValue = subscribedIntent.mutate(value, payload);
+                // if the intent returned `undefined` then ignore it
+                return intentReturnValue !== undefined ? intentReturnValue : value;
             },
             this.value
         );
