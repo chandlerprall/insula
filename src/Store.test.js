@@ -30,6 +30,34 @@ test('Store dispatches intents', t => {
     t.is(store.sections.people.value[0], PERSON_VALUE);
 });
 
+test('Intents can dispatch other intents', t => {
+    t.plan(2);
+
+    const INTENT_ADD_ITEM = 'INTENT_ADD_ITEM';
+    const INTENT_ADD_PERSON = 'INTENT_ADD_PERSON';
+
+    const ITEM_VALUE = 'anItem';
+    const PERSON_VALUE = 'somePerson';
+
+    const addItem = Intent(INTENT_ADD_ITEM, (items, item, {dispatch}) => {
+        dispatch(INTENT_ADD_PERSON, PERSON_VALUE);
+        return [].concat(items, [item]);
+    });
+    const addPerson = Intent(INTENT_ADD_PERSON, (people, person) => [].concat(people, [person]));
+
+    const sectionItems = Section([], addItem);
+    const sectionPeople = Section([], addPerson);
+
+    const store = Store({
+        sections: {items: sectionItems, people: sectionPeople}
+    });
+
+    store.dispatch(INTENT_ADD_ITEM, ITEM_VALUE);
+
+    t.is(store.sections.items.value[0], ITEM_VALUE);
+    t.is(store.sections.people.value[0], PERSON_VALUE);
+});
+
 test('Store sections can be added / removed at run time', t => {
     t.plan(4);
 

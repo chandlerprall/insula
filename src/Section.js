@@ -35,13 +35,13 @@ Section.prototype.removeIntent = function removeIntent(intent) {
     }
 };
 
-Section.prototype.handleIntent = function handleIntent(intentName, payload) {
+Section.prototype.handleIntent = function handleIntent(intentName, payload, context) {
     if (this.intents[intentName] == null) {
         return false;
     } else {
         this.value = (this.intents[intentName] || []).reduce(
             (value, subscribedIntent) => {
-                const intentReturnValue = subscribedIntent.mutate(value, payload);
+                const intentReturnValue = subscribedIntent.mutate(value, payload, context);
                 // if the intent returned `undefined` then ignore it
                 return intentReturnValue !== undefined ? intentReturnValue : value;
             },

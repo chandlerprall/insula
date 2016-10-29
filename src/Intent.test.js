@@ -43,3 +43,10 @@ test('Intent#mutate returns intended value', t => {
     const intent = Intent('TEST', () => RETURN_VALUE);
     t.is(intent.mutate(), RETURN_VALUE);
 });
+
+test('Intent#mutate calls mutator with correct "context"', t => {
+    t.plan(1);
+    const CONTEXT = {};
+    const intent = Intent('TEST', (state, value, context) => t.is(context, CONTEXT));
+    intent.mutate(null, null, CONTEXT);
+});

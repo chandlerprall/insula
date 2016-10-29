@@ -15,6 +15,6 @@ export default function Intent(name, mutator) {
     this.mutator = mutator;
 }
 
-Intent.prototype.mutate = function mutate(value, payload) {
-    return this.mutator(value, payload);
+Intent.prototype.mutate = function mutate(value, payload, context) {
+    return this.mutator(value, payload, context);
 };

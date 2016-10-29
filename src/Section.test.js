@@ -48,17 +48,19 @@ test('Section#handleIntent updates section value', t => {
     t.is(section.value, RETURN_VALUE);
 });
 
-test('Section#handleIntent passes the current value and payload to mutators', t => {
-    t.plan(2);
+test('Section#handleIntent passes the current value, payload, and context to mutators', t => {
+    t.plan(3);
 
     const STATE_VALUE = {};
     const PAYLOAD = {};
-    const intentTest = Intent('INTENT_TEST', (value, payload) => {
+    const CONTEXT = {};
+    const intentTest = Intent('INTENT_TEST', (value, payload, context) => {
         t.is(value, STATE_VALUE);
         t.is(payload, PAYLOAD);
+        t.is(context, CONTEXT);
     });
     const section = Section(STATE_VALUE, intentTest);
-    section.handleIntent('INTENT_TEST', PAYLOAD);
+    section.handleIntent('INTENT_TEST', PAYLOAD, CONTEXT);
 });
 
 test('Section#handleIntent passes mutation through multiple intents in order', t => {

@@ -28,11 +28,16 @@ Store.prototype.getValuesForSelectors = function getValuesForSelectors(sections)
     });
 };
 
+Store.prototype.getIntentContext = function() {
+    return {dispatch: this.dispatch.bind(this)};
+};
+
 Store.prototype.dispatch = function dispatch(intentName, payload) {
     // Step 1: update sections` values
     let affectedSections = [];
+    const intentContext = this.getIntentContext();
     Object.keys(this.sections).forEach(sectionName => {
-        const isSectionAffected = this.sections[sectionName].handleIntent(intentName, payload);
+        const isSectionAffected = this.sections[sectionName].handleIntent(intentName, payload, intentContext);
         isSectionAffected && affectedSections.push(sectionName);
     });
 
