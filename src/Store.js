@@ -36,6 +36,11 @@ Store.prototype.getIntentContext = function getIntentContext() {
     return {dispatch: this.dispatch.bind(this)};
 };
 
+Store.prototype.isTransformerOutputDifferent = function isTransformerOutputDifferent(a, b) {
+    // @TODO better default comparator
+    return a !== b;
+};
+
 Store.prototype.processAffectedSections = function processAffectedSections() {
     // pick up where `Store.prototype.dispatch` left off, allowing intent dispatches to be batched
 
@@ -47,7 +52,7 @@ Store.prototype.processAffectedSections = function processAffectedSections() {
         if (doArraysIntersect(transformer.selectors, this.affectedSections)) {
             const newData = transformer.transform(this.getValuesForSelectors(transformer.selectors));
             // @TODO better compare newData with previousData
-            if (newData !== previousData) {
+            if (this.isTransformerOutputDifferent(newData, previousData)) {
                 affectedTransformerInstances.push(transformerInstance);
                 transformerInstance.data = newData;
             }
