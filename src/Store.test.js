@@ -118,74 +118,133 @@ test('Store returns transformed data on subscription', t => {
 });
 
 test('Store calls transformers affected by an intent', t => {
-    t.plan(2);
+    return new Promise(resolve => {
+        t.plan(2);
 
-    const INTENT = 'intent/INTENT';
-    const intent = Intent(INTENT, () => {});
+        const INTENT = 'intent/INTENT';
+        const intent = Intent(INTENT, () => {});
 
-    const store = Store({
-        sections: {items: Section([], intent)}
+        const store = Store({
+            sections: {items: Section([], intent)}
+        });
+
+        const transformer = Transformer(['items'], () => t.pass());
+        store.subscribeTransformer(transformer, () => {});
+
+        store.dispatch(INTENT);
+
+        // allow for the batched intent to be processed
+        setTimeout(resolve);
     });
-
-    const transformer = Transformer(['items'], () => t.pass());
-    store.subscribeTransformer(transformer, () => {});
-
-    store.dispatch(INTENT);
 });
 
 test('Store fires affected transform listeners only once', t => {
-    t.plan(2);
+    return new Promise(resolve => {
+        t.plan(2);
 
-    const INTENT_TEST = 'intent/TEST';
-    const intentTest = Intent(INTENT_TEST, () => {});
+        const INTENT_TEST = 'intent/TEST';
+        const intentTest = Intent(INTENT_TEST, () => {});
 
-    const store = Store({sections: {
-        items: Section([], intentTest),
-        people: Section([], intentTest)
-    }});
-    const transformer = Transformer(['items', 'people'], () => t.pass());
+        const store = Store({sections: {
+            items: Section([], intentTest),
+            people: Section([], intentTest)
+        }});
+        const transformer = Transformer(['items', 'people'], () => t.pass());
 
-    store.subscribeTransformer(transformer, () => {});
-    store.dispatch(INTENT_TEST);
+        store.subscribeTransformer(transformer, () => {});
+        store.dispatch(INTENT_TEST);
+
+        // allow for the batched intent to be processed
+        setTimeout(resolve);
+    });
 });
 
 test('Store fires only affected transform listeners', t => {
-    t.plan(3);
+    return new Promise(resolve => {
+        t.plan(3);
 
-    const INTENT_TEST = 'intent/TEST';
-    const intentTest = Intent(INTENT_TEST, () => {});
+        const INTENT_TEST = 'intent/TEST';
+        const intentTest = Intent(INTENT_TEST, () => {});
 
-    const store = Store({sections: {
-        items: Section([], intentTest),
-        people: Section([])
-    }});
+        const store = Store({sections: {
+            items: Section([], intentTest),
+            people: Section([])
+        }});
 
-    const transformerItems = Transformer(['items'], () => t.pass()); // runs once on create, once for the intent
-    const transformerPeople = Transformer(['people'], () => t.pass()); // runs only on create
+        const transformerItems = Transformer(['items'], () => t.pass()); // runs once on create, once for the intent
+        const transformerPeople = Transformer(['people'], () => t.pass()); // runs only on create
 
-    store.subscribeTransformer(transformerItems, () => {});
-    store.subscribeTransformer(transformerPeople, () => {});
+        store.subscribeTransformer(transformerItems, () => {});
+        store.subscribeTransformer(transformerPeople, () => {});
 
-    store.dispatch(INTENT_TEST);
+        store.dispatch(INTENT_TEST);
+
+        // allow for the batched intent to be processed
+        setTimeout(resolve);
+    });
 });
 
 test('Store calls transform subscriptions', t => {
-    t.plan(3);
+    return new Promise(resolve => {
+        t.plan(3);
 
-    const INCREASE_INTENT = 'intent/INCREASE_INTENT';
-    const increase = Intent(INCREASE_INTENT, x => x + 1);
+        const INCREASE_INTENT = 'intent/INCREASE_INTENT';
+        const increase = Intent(INCREASE_INTENT, x => x + 1);
 
-    const store = Store({
-        sections: {value: Section(0, increase)}
+        const store = Store({
+            sections: {value: Section(0, increase)}
+        });
+
+        const transformer = Transformer(['value'], ([value]) => {
+            t.pass(); // called twice
+            return {value}; // convert to object
+        });
+
+        const onTransform = ({value: transformedValue}) => t.is(transformedValue, 1);
+        store.subscribeTransformer(transformer, onTransform);
+
+        store.dispatch(INCREASE_INTENT);
+
+        // allow for the batched intent to be processed
+        setTimeout(resolve);
     });
+});
 
-    const transformer = Transformer(['value'], ([value]) => {
-        t.pass(); // called twice
-        return {value}; // convert to object
+test('Store batches state updates', t => {
+    return new Promise(resolve => {
+        t.plan(1);
+
+        const ADD_ITEM_INTENT = 'intent/ADD_ITEM';
+        const addItem = Intent(ADD_ITEM_INTENT, (items, item) => items.concat([item]));
+
+        const ADD_PERSON_INTENT = 'intent/ADD_PERSON';
+        const addPerson = Intent(ADD_PERSON_INTENT, (people, person, {dispatch}) => {
+            dispatch(ADD_ITEM_INTENT);
+            return people.concat([person]);
+        });
+
+        const ITEM_VALUE = 'anItem';
+        const PERSON_VALUE = 'somePerson';
+
+        const store = Store({
+            sections: {
+                items: Section([], addItem),
+                people: Section([], addPerson)
+            }
+        });
+
+        let returnValue = 0;
+        const transformer = Transformer(
+            ['items', 'people'],
+            () => returnValue++ // ensures output of transformer is always different which means the downstream subscribe is always called
+        );
+
+        const onTransform = () => t.pass(); // should only be called once as the two dispatches should collate into one update
+        store.subscribeTransformer(transformer, onTransform);
+
+        store.dispatch(ADD_PERSON_INTENT);
+
+        // allow for the batched intent to be processed
+        setTimeout(resolve);
     });
-
-    const onTransform = ({value: transformedValue}) => t.is(transformedValue, 1);
-    store.subscribeTransformer(transformer, onTransform);
-
-    store.dispatch(INCREASE_INTENT);
 });

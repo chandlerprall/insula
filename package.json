@@ -18,5 +18,8 @@
     "require": [
       "babel-register"
     ]
+  },
+  "dependencies": {
+    "next-tick": "^1.0.0"
   }
 }
