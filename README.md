@@ -25,10 +25,27 @@ const store = Store(config);
 
 ## dispatching intents
 
-Intent names (string values) are dispatched, along with an optional payload. When an intent is fired, its mutator function is passed the section's current value and the payload. Any value returned by the mutator function becomes the new section value.
+Intent names (string values) are dispatched, along with an optional payload. When an intent is fired, its mutator function is passed the section's current value and the payload. Any value returned by the mutator function becomes the new section value; if the mutator function returns `undefined` the section value is not changed.
 
 ```javascript
 store.dispatch(ADD_NAME, 'Robert Browning');
+```
+
+Intents receive a context object as the third argument, allowing them to dispatch additional intents
+
+```javascript
+const ADD_PERSON = 'intent/AddPerson';
+const ADD_NAME = 'intent/AddName';
+const ADD_PHONE = 'intent/AddPhone';
+
+const addName = Intent(ADD_NAME, (names, name) => [name].concat(names));
+const addPhoneNumber = Intent(ADD_PHONE, (phoneNumbers, phoneNumber) => [phoneNumber].concat(phoneNumbers));
+
+const addNameIntent = Intent(ADD_PERSON, (people, person, {dispatch}) => {
+    dispatch(ADD_NAME, person.name);
+    dispatch(ADD_PHONE, person.phoneNumber);
+    return [person].concat(people);
+});
 ```
 
 ## transformers
@@ -44,6 +61,20 @@ const namesTransformer = Transformer(
             const nameParts = name.split(' ');
             return {first: nameParts[0], last: nameParts[1]};
         });
+    }
+);
+```
+
+Like intents, transformers are passed an additional argument which lets them create intents that can be used by subscribers.
+
+```javascript
+const REMOVE_PERSON_INTENT = 'intent/RemovePerson'; // assume an intent that takes a person's ID and removes him / her
+
+const transformer = Transformer(
+    ['people'],
+    ([people], {createIntent}) => {
+        // add a `removePerson` intent to each person, when it is dispatched, the REMOVE_PERSON_INTENT is triggered along with the person's id
+        return people.map(person => ({...person, removePerson: createIntent(REMOVE_PERSON_INTENT, person.id)});
     }
 );
 ```
