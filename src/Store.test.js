@@ -248,3 +248,47 @@ test('Store batches state updates', t => {
         setTimeout(resolve);
     });
 });
+
+test('Store correctly creates, tracks, and removes proxied intents', t => {
+    return new Promise(resolve => {
+        t.plan(5);
+
+        const NEW_ITEM_VALUE = 'newItemValue';
+
+        const ADD_ITEM_INTENT = 'ADD_ITEM';
+        const addItem = Intent(ADD_ITEM_INTENT, (items, item) => items.concat([item]));
+
+        const store = Store({
+            sections: {items: Section([], addItem)}
+        });
+
+        const transformer = Transformer(['items'], ([items], {createIntent}) => {
+            return {
+                items,
+                addAnItem: createIntent(ADD_ITEM_INTENT, NEW_ITEM_VALUE, 'addAnItem')
+            };
+        });
+
+        let firstProxiedIntentName;
+
+        const onTransform = ({items, addAnItem}) => {
+            t.regex(firstProxiedIntentName, /\d+\-addAnItem/); // verify addAnItem still matches a proxied intent name
+            t.not(firstProxiedIntentName, addAnItem); // verify addAnItem has changed as the transformer re-executed
+            t.is(items[0], NEW_ITEM_VALUE); // verify the intended intent fired with its payload
+        };
+        const initialTransformedData = store.subscribeTransformer(transformer, onTransform);
+
+        firstProxiedIntentName = initialTransformedData.addAnItem;
+        t.regex(firstProxiedIntentName, /\d+\-addAnItem/);
+
+        store.dispatch(initialTransformedData.addAnItem);
+
+        // allow for the batched intent to be processed
+        setTimeout(() => {
+            store.unsubscribeTransformer(transformer, onTransform);
+            t.is(Object.keys(store.proxiedIntents).length, 0);
+
+            resolve();
+        });
+    });
+});
