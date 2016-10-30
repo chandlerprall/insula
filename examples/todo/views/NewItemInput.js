@@ -5,12 +5,9 @@ import NewItemTransformer from '../transformers/NewItemTransformer';
 function NewItemInput({value, dispatch, addItemIntent, updateNewItemIntent}) {
     const onKeyDown = e => {
         if (e.keyCode === 13) {
-            dispatch(updateNewItemIntent, '');
-            dispatch(addItemIntent, e.target.value);
+            dispatch(addItemIntent);
         }
     };
-
-    console.log('NewItemInput::render');
 
     return (
         <div>
