@@ -54,7 +54,7 @@ const setAddressField = Intent(SET_ADDRESS_FIELD, (order, {field, value}) => ord
 const ADD_ITEM_TO_ORDER = 'intent/ADD_ITEM_TO_ORDER';
 const addItemToOrder = Intent(ADD_ITEM_TO_ORDER, (order, item) => order.update('items', (items) => items.push(Immutable.fromJS(item))));
 
-const store = new SelectorStore();
+const store = new ImmutableStore();
 store.addSection('order', Section(initialOrderState, setName, setAddressField, addItemToOrder));
 
 const nameTransformer = Transformer(['order.name'], ([name]) => name);
