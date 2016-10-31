@@ -6,7 +6,7 @@ const Section = require('../src/Section').default;
 const Intent = require('../src/Intent').default;
 const Transformer = require('../src/Transformer').default;
 
-class SelectorStore extends Store {
+class ImmutableStore extends Store {
     constructor(...args) {
         super(...args);
     }
