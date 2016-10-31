@@ -34,7 +34,7 @@ class ImmutableStore extends Store {
 }
 
 const initialOrderState = Immutable.fromJS({
-    name: 'asdf',
+    name: '',
     address: {
         line1: '',
         line2: '',
