@@ -4,15 +4,10 @@ const named = require('vinyl-named');
 const rename = require('gulp-rename');
 const webpack = require('gulp-webpack');
 
-gulp.task('copy-html', () =>
-    gulp.src(['./examples/**/*.html', '!./examples/build', '!./examples/build/**'])
-    .pipe(gulp.dest('./examples/build'))
-);
-
-gulp.task('build-examples', ['copy-html'], () => {
+function bundle(appname) {
     const tmp = {};
 
-    return gulp.src(['./examples/**/appentry.js', '!./examples/build', '!./examples/build/**'])
+    return gulp.src(`./examples/${appname}/appentry.js`)
         .pipe(named())
         .pipe(rename(function (path) {
             tmp[path.basename] = path;
@@ -31,5 +26,12 @@ gulp.task('build-examples', ['copy-html'], () => {
         .pipe(rename(function (path) {
             path.dirname = tmp[path.basename].dirname;
         }))
-        .pipe(gulp.dest('./examples/build'))
-});
+        .pipe(gulp.dest(`./examples/build/${appname}`));
+}
+
+gulp.task('copy-html', () => gulp.src(['./examples/**/*.html', '!./examples/build', '!./examples/build/**']).pipe(gulp.dest('./examples/build')));
+
+gulp.task('build-imagesearch', ['copy-html'], () => bundle('imagesearch'));
+gulp.task('build-todo', ['copy-html'], () => bundle('todo'));
+
+gulp.task('build-examples', ['build-imagesearch', 'build-todo']);

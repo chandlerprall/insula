@@ -5,6 +5,7 @@
   ],
   "plugins": [
     "transform-flow-strip-types",
-    "transform-object-rest-spread"
+    "transform-object-rest-spread",
+    "babel-plugin-jsx-display-if"
   ]
 }
