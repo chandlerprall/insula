@@ -2,7 +2,7 @@ import nextTick from 'next-tick';
 import {doArraysIntersect, getUid} from './utils';
 import TransformerInstance from './TransformerInstance';
 
-export default function Store(config) {
+export default function Store(config = {}) {
     if (!(this instanceof Store)) {
         return new Store(config);
     }
@@ -15,7 +15,7 @@ export default function Store(config) {
     this.affectedSections = [];
 
     // add sections
-    Object.keys(config.sections).forEach(sectionName => this.addSection(sectionName, config.sections[sectionName]))
+    Object.keys(config.sections || {}).forEach(sectionName => this.addSection(sectionName, config.sections[sectionName]))
 }
 
 Store.prototype.addSection = function addSection(name, section) {
@@ -26,11 +26,20 @@ Store.prototype.removeSection = function removeSection(name) {
     delete this.sections[name];
 };
 
-Store.prototype.getValuesForSelectors = function getValuesForSelectors(sections) {
-    return sections.map(section => {
-        if (this.sections[section] == null) return null;
-        return this.sections[section].value;
+Store.prototype.getValuesForSelectors = function getValuesForSelectors(selectors) {
+    return selectors.map(selector => {
+        const section = this.getSectionBySelector(selector);
+        if (section == null) return null;
+        return section.value;
     });
+};
+
+Store.prototype.getSectionBySelector = function getSectionBySelector(selector) {
+    return this.sections[this.mapSelectorToSectionName(selector)];
+};
+
+Store.prototype.mapSelectorToSectionName = function mapSelectorToSectionName(selector) {
+    return selector;
 };
 
 Store.prototype.addIntentProxy = function addIntentProxy(proxyName, targetIntentName, intentPayload) {
@@ -77,8 +86,8 @@ Store.prototype.processAffectedSections = function processAffectedSections() {
         // un-register any previously created proxy intents
         transformerInstance.createdProxyIntents.forEach(proxyName => this.removeIntentProxy(proxyName));
         transformerInstance.createdProxyIntents.length = 0;
-        
-        if (doArraysIntersect(transformer.selectors, this.affectedSections)) {
+
+        if (doArraysIntersect(transformer.selectors.map(selector => this.mapSelectorToSectionName(selector)), this.affectedSections)) {
             const newData = transformer.transform(this.getValuesForSelectors(transformer.selectors), transformerContext);
             // @TODO better compare newData with previousData
             if (this.isTransformerOutputDifferent(newData, previousData)) {
@@ -106,8 +115,10 @@ Store.prototype.dispatch = function dispatch(intentName, payload) {
 
     // resolution step 1: update sections` values
     const intentContext = this.getIntentContext();
-    Object.keys(this.sections).forEach(sectionName => {
-        const isSectionAffected = this.sections[sectionName].handleIntent(intentName, payload, intentContext);
+    Object.keys(this.sections).forEach(sectionSelector => {
+        const sectionName = this.mapSelectorToSectionName(sectionSelector);
+        const section = this.getSectionBySelector(sectionSelector);
+        const isSectionAffected = section.handleIntent(intentName, payload, intentContext);
         if (isSectionAffected) {
             this.affectedSections.push(sectionName);
             if (this.affectedSections.length === 1) {
