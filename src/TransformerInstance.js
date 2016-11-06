@@ -1,6 +1,7 @@
 export default class TransformerInstance {
     constructor(transformer) {
         this.transformer = transformer;
+        this.lastInput = null;
         this.data = null;
         this.subscriptions = [];
         this.createdProxyIntents = [];

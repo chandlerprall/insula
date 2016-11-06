@@ -122,7 +122,7 @@ test('Store calls transformers affected by an intent', t => {
         t.plan(2);
 
         const INTENT = 'intent/INTENT';
-        const intent = Intent(INTENT, () => {});
+        const intent = Intent(INTENT, () => [1]);
 
         const store = Store({
             sections: {items: Section([], intent)}
@@ -143,7 +143,7 @@ test('Store fires affected transform listeners only once', t => {
         t.plan(2);
 
         const INTENT_TEST = 'intent/TEST';
-        const intentTest = Intent(INTENT_TEST, () => {});
+        const intentTest = Intent(INTENT_TEST, list => ['value'].concat(list));
 
         const store = Store({sections: {
             items: Section([], intentTest),
@@ -162,22 +162,52 @@ test('Store fires affected transform listeners only once', t => {
 test('Store fires only affected transform listeners', t => {
     return new Promise(resolve => {
         t.plan(3);
-
+        
         const INTENT_TEST = 'intent/TEST';
-        const intentTest = Intent(INTENT_TEST, () => {});
-
+        const intentTest = Intent(INTENT_TEST, list => ['value'].concat(list));
+        
         const store = Store({sections: {
             items: Section([], intentTest),
             people: Section([])
         }});
-
+        
         const transformerItems = Transformer(['items'], () => t.pass()); // runs once on create, once for the intent
         const transformerPeople = Transformer(['people'], () => t.pass()); // runs only on create
-
+        
         store.subscribeTransformer(transformerItems, () => {});
         store.subscribeTransformer(transformerPeople, () => {});
-
+        
         store.dispatch(INTENT_TEST);
+        
+        // allow for the batched intent to be processed
+        setTimeout(resolve);
+    });
+});
+
+test('Store fires affected transform listeners only when the transform input has changed', t => {
+    return new Promise(resolve => {
+        t.plan(3);
+        
+        const INTENT_ADD = 'intent/ADD';
+        const intentAdd = Intent(INTENT_ADD, items => ['test'].concat(items));
+
+        const INTENT_IDENTITY = 'intent/IDENTITY';
+        const intentIdentity = Intent(INTENT_IDENTITY, x => x);
+        
+        const store = Store({sections: {
+            items: Section([], intentAdd, intentIdentity),
+        }});
+        
+        const transformerItems = Transformer(['items'], ([items]) => {
+            t.pass(); // runs runs on create and once for the ADD intent
+            return items;
+        });
+        
+        store.subscribeTransformer(transformerItems, () => t.pass()); // runs once for the ADD intent
+        
+        store.dispatch(INTENT_IDENTITY);
+        store.dispatch(INTENT_ADD);
+        store.dispatch(INTENT_IDENTITY);
 
         // allow for the batched intent to be processed
         setTimeout(resolve);

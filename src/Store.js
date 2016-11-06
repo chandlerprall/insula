@@ -1,5 +1,5 @@
 import nextTick from 'next-tick';
-import {doArraysIntersect, getUid} from './utils';
+import {areObjectsShallowEqual, doArraysIntersect, getUid} from './utils';
 import TransformerInstance from './TransformerInstance';
 
 export default function Store(config = {}) {
@@ -69,8 +69,14 @@ Store.prototype.getTransformerContext = function getTransformerContext(transform
 };
 
 Store.prototype.isTransformerOutputDifferent = function isTransformerOutputDifferent(a, b) {
-    // @TODO better default comparator
-    return a !== b;
+    return !areObjectsShallowEqual(a, b);
+};
+
+Store.prototype.isTransformerInputDifferent = function isTransformerInputDifferent(a, b) {
+    for (let i = 0; i < a.length; i++) {
+        if (!areObjectsShallowEqual(a[i], b[i])) return true;
+    }
+    return false;
 };
 
 Store.prototype.processAffectedSections = function processAffectedSections() {
@@ -88,11 +94,14 @@ Store.prototype.processAffectedSections = function processAffectedSections() {
         transformerInstance.createdProxyIntents.length = 0;
 
         if (doArraysIntersect(transformer.selectors.map(selector => this.mapSelectorToSectionName(selector)), this.affectedSections)) {
-            const newData = transformer.transform(this.getValuesForSelectors(transformer.selectors), transformerContext);
-            // @TODO better compare newData with previousData
-            if (this.isTransformerOutputDifferent(newData, previousData)) {
-                affectedTransformerInstances.push(transformerInstance);
-                transformerInstance.data = newData;
+            const transformerInput = this.getValuesForSelectors(transformer.selectors);
+            if (this.isTransformerInputDifferent(transformerInput, transformerInstance.lastInput)) {
+                const newData = transformer.transform(transformerInput, transformerContext);
+                transformerInstance.lastInput = newData;
+                if (this.isTransformerOutputDifferent(newData, previousData)) {
+                    affectedTransformerInstances.push(transformerInstance);
+                    transformerInstance.data = newData;
+                }
             }
         }
     });
@@ -139,7 +148,9 @@ Store.prototype.subscribeTransformer = function subscribeTransformer(transformer
         const transformerContext = this.getTransformerContext(transformerInstance);
 
         // get initial transform data
-        transformerInstance.data = transformer.transform(this.getValuesForSelectors(transformer.selectors), transformerContext);
+        const transformerInput = this.getValuesForSelectors(transformer.selectors);
+        transformerInstance.lastInput = transformerInput;
+        transformerInstance.data = transformer.transform(transformerInput, transformerContext);
 
         this.transformerInstances[transformer.uid] = transformerInstance;
     }
