@@ -69,14 +69,18 @@ Store.prototype.getTransformerContext = function getTransformerContext(transform
 };
 
 Store.prototype.isTransformerOutputDifferent = function isTransformerOutputDifferent(a, b) {
-    return !areObjectsShallowEqual(a, b);
+    // not yet implemented
+    return a !== b;
+    // return !areObjectsShallowEqual(a, b);
 };
 
 Store.prototype.isTransformerInputDifferent = function isTransformerInputDifferent(a, b) {
-    for (let i = 0; i < a.length; i++) {
-        if (!areObjectsShallowEqual(a[i], b[i])) return true;
-    }
-    return false;
+    // not yet implemented
+    return a !== b;
+    // for (let i = 0; i < a.length; i++) {
+    //     if (!areObjectsShallowEqual(a[i], b[i])) return true;
+    // }
+    // return false;
 };
 
 Store.prototype.processAffectedSections = function processAffectedSections() {
@@ -97,7 +101,7 @@ Store.prototype.processAffectedSections = function processAffectedSections() {
             const transformerInput = this.getValuesForSelectors(transformer.selectors);
             if (this.isTransformerInputDifferent(transformerInput, transformerInstance.lastInput)) {
                 const newData = transformer.transform(transformerInput, transformerContext);
-                transformerInstance.lastInput = newData;
+                transformerInstance.lastInput = transformerInput;
                 if (this.isTransformerOutputDifferent(newData, previousData)) {
                     affectedTransformerInstances.push(transformerInstance);
                     transformerInstance.data = newData;
