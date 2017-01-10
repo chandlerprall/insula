@@ -7,9 +7,9 @@ The below examples create a store with a single state holding a list of names. T
 A store is created by passing a `sections` configuration. Sections are created with an initial value and the intents allowed to operate on and mutate that value.
 
 ```javascript
-import Store from 'capacitor/src/Store';
-import Section from 'capacitor/src/Section';
-import Intent from 'capacitor/src/Intent';
+import Store from 'insula/src/Store';
+import Section from 'insula/src/Section';
+import Intent from 'insula/src/Intent';
 
 // Create an intent to add names to an array
 const ADD_NAME = 'intent/AddName'; // name of the intent
