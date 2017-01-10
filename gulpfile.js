@@ -19,7 +19,8 @@ function bundle(appname) {
             resolveLoader: {root: path.join(__dirname, "node_modules")},
             module: {
                 loaders: [
-                    {test: /\.js/, exclude: /node_modules/, loader: "babel-loader"}
+                    {test: /\.js/, exclude: /node_modules/, loader: "babel-loader"},
+                    {test: /node_modules\/insula\/.*?\.js/, loader: "babel-loader"}
                 ]
             }
         }))

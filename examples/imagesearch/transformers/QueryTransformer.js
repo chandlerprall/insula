@@ -1,4 +1,4 @@
-import Transformer from 'capacitor/src/Transformer';
+import Transformer from 'insula/src/Transformer';
 
 export default Transformer(
     ['query'],

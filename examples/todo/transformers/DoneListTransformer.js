@@ -1,4 +1,4 @@
-import Transformer from 'capacitor/src/Transformer';
+import Transformer from 'insula/src/Transformer';
 import {UNFINISH_ITEM} from '../intents/IntentNames';
 
 export default Transformer(

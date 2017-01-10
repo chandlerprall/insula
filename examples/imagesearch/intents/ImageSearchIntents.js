@@ -1,4 +1,4 @@
-import Intent from 'capacitor/src/Intent';
+import Intent from 'insula/src/Intent';
 import {SET_QUERY, START_SEARCH, SET_IS_LOADING, SET_RESULTS} from './IntentNames';
 import {performQuery} from '../PixabayService';
 

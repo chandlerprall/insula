@@ -6,7 +6,7 @@ export default function connect(transformer) {
             constructor(props, context, ...rest) {
                 super(props, context, ...rest);
 
-                this.store = context.capacitorStore;
+                this.store = context.insulaStore;
 
                 this.onStoreUpdate = output => {
                     this.setState({transformerOutput: output});
@@ -36,14 +36,14 @@ export default function connect(transformer) {
             }
         }
 
-        ConnectedClass.displayName = `CapacitorConnect<${view.displayName}>`;
+        ConnectedClass.displayName = `InsulaConnect<${view.displayName}>`;
 
         ConnectedClass.propTypes = {
 
         };
 
         ConnectedClass.contextTypes = {
-            capacitorStore: PropTypes.object.isRequired
+            insulaStore: PropTypes.object.isRequired
         };
 
         return ConnectedClass;

@@ -1,4 +1,4 @@
-import Intent from 'capacitor/src/Intent';
+import Intent from 'insula/src/Intent';
 import {ADD_ITEM, UPDATE_NEW_ITEM, FINISH_ITEM, UNFINISH_ITEM} from './IntentNames';
 
 export const addItem = Intent(ADD_ITEM, (items, item, {dispatch}) => {

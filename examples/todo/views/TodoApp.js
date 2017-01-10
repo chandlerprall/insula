@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
-import Capacitor from '../../../src/Capacitor';
-import Store from 'capacitor/src/Store';
-import Section from 'capacitor/src/Section';
+import Insula from '../../../src/Insula';
+import Store from 'insula/src/Store';
+import Section from 'insula/src/Section';
 import {addItem, updateNewItem, finishItem, unfinishItem} from '../intents/ItemIntents';
 import NewItemInput from './NewItemInput';
 import TodoList from './TodoList';
@@ -21,7 +21,7 @@ export default class TodoApp extends PureComponent {
 
     render() {
         return (
-            <Capacitor store={this.store}>
+            <Insula store={this.store}>
                 <div>
                     <h1>Todo List</h1>
     
@@ -33,7 +33,7 @@ export default class TodoApp extends PureComponent {
                     <strong>Things done</strong>
                     <DoneList/>
                 </div>
-            </Capacitor>
+            </Insula>
         );
     }
 };
