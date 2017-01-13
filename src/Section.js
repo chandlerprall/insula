@@ -40,12 +40,12 @@ Section.prototype.handleIntent = function handleIntent(intentName, payload, cont
         return false;
     } else {
         this.value = (this.intents[intentName] || []).reduce(
-            (value, subscribedIntent) => {
-                const intentReturnValue = subscribedIntent.mutate(value, payload, context);
+            (x, subscribedIntent) => {
+                const intentReturnValue = subscribedIntent.mutate(this.value, payload, context);
                 // if the intent returned `undefined` then ignore it
-                return intentReturnValue !== undefined ? intentReturnValue : value;
+                return intentReturnValue !== undefined ? intentReturnValue : this.value;
             },
-            this.value
+            null
         );
         return true;
     }
