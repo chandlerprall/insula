@@ -1,26 +1,15 @@
 {
   "name": "insula",
-  "version": "1.0.2",
+  "version": "2.0.0-alpha",
   "scripts": {
-    "test": "./node_modules/.bin/ava"
+
   },
   "author": "Chandler Prall <chandler.prall@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "ava": "^0.16.0",
-    "babel": "^6.5.2",
-    "babel-plugin-transform-object-rest-spread": "^6.16.0",
-    "babel-preset-es2015": "^6.16.0",
-    "babel-register": "^6.16.3",
-    "immutable": "^3.8.1"
-  },
-  "ava": {
-    "timeout": "5s",
-    "require": [
-      "babel-register"
-    ]
+
   },
   "dependencies": {
-    "next-tick": "^1.0.0"
+
   }
 }
