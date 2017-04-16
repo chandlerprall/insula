@@ -1,5 +1,20 @@
 import Store from '../Store';
 
+function testAfterNextTick(fn) {
+    return new Promise((resolve, reject) => {
+        setTimeout(
+            () => {
+                try {
+                    fn();
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            }
+        );
+    });
+}
+
 describe('Store', () => {
     describe('State retrieval', () => {
         it('accepts a state on creation and allows retrieval', () => {
@@ -217,6 +232,74 @@ describe('Store', () => {
             store.dispatch(EVENT);
         
             expect(store.getState()).toEqual(STATE2);
+        });
+    });
+    
+    describe('State change subscriptions', () => {
+        it('notifies listeners on full state changes', () => {
+            const store = new Store({});
+
+            const listener = jest.fn();
+
+            store.subscribeToState([[]], listener);
+
+            const NEW_STATE = {};
+            store.setState(NEW_STATE);
+            
+            return testAfterNextTick(() => {
+                expect(listener.mock.calls).toEqual([
+                    [[NEW_STATE]]
+                ]);
+            });
+        });
+
+        it('notifies listeners on partial state changes', () => {
+            const store = new Store({one: '1', two: '2'});
+
+            const listener = jest.fn();
+
+            store.subscribeToState([['two']], listener);
+
+            store.setPartialState(['two'], '-2');
+    
+            return testAfterNextTick(() => {
+                expect(listener.mock.calls).toEqual([
+                    [['-2']]
+                ]);
+            });
+        });
+    
+        it('notifies listeners on partial, deep state changes', () => {
+            const store = new Store({one: '1', two: {sub: {key: 'value'}}});
+        
+            const listener = jest.fn();
+        
+            store.subscribeToState([['two', 'sub']], listener);
+        
+            store.setPartialState(['two', 'sub', 'key'], 'val');
+        
+            return testAfterNextTick(() => {
+                expect(listener.mock.calls).toEqual([
+                    [[{key: 'val'}]]
+                ]);
+            });
+        });
+    
+        it('notifies a listener once on back-to-back changes', () => {
+            const store = new Store({one: '1', two: {sub: {key: 'value'}}});
+        
+            const listener = jest.fn();
+        
+            store.subscribeToState([['two', 'sub']], listener);
+        
+            store.setPartialState(['two', 'sub', 'key'], 'val');
+            store.setPartialState(['two', 'sub', 'key'], 'val');
+        
+            return testAfterNextTick(() => {
+                expect(listener.mock.calls).toEqual([
+                    [[{key: 'val'}]]
+                ]);
+            });
         });
     });
 });

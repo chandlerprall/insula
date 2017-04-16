@@ -1,15 +1,21 @@
+import TreeSubscription from './TreeSubscription';
+
 var NO_INDEX = -1;
 var REMOVE_ONE_ITEM = 1;
 
 export default function Store(initialState) {
     this.state = initialState || {};
     this.listeners = {};
+    this.subscriptions = new TreeSubscription(this);
     this.eventOptions = this.createEventOptions();
     
     // To avoid creating polymorphic function usage of the internal dispatching code
     // `dispatch` thinly wraps the `internalDispatch` method by first setting
     // `this.currentPayload`
     this.currentEventPayload = null;
+    
+    this.callSubscribers = this.callSubscribers.bind(this);
+    this.nextSubscriberCalls = [];
 }
 
 Store.prototype.getState = function getState() {
@@ -33,6 +39,7 @@ Store.prototype.getPartialState = function getPartialState(selector) {
 
 Store.prototype.setState = function setState(state) {
     this.state = state;
+    this.callSubscribersUnderSelector([]);
 };
 
 Store.prototype.setPartialState = function setPartialState(selector, value) {
@@ -48,6 +55,7 @@ Store.prototype.setPartialState = function setPartialState(selector, value) {
     }
     
     currentValue[lastKey] = value;
+    this.callSubscribersUnderSelector(selector);
 };
 
 Store.prototype.on = function on(event, listener) {
@@ -95,4 +103,43 @@ Store.prototype.createEventOptions = function createEventOptions() {
 
 Store.prototype.getEventOptions = function getEventOptions() {
     return this.eventOptions;
+};
+
+Store.prototype.subscribeToState = function subscribeToState(selectors, listener) {
+    var store = this;
+    var stateChangeListener = function() {
+        // get state values
+        var stateValues = [];
+        for (var i = 0; i < selectors.length; i++) {
+            stateValues.push(store.getPartialState(selectors[i]));
+        }
+        
+        // call listener with all the state values
+        listener(stateValues);
+    };
+    
+    for (var i = 0; i < selectors.length; i++) {
+        this.subscriptions.subscribeSelector(selectors[i], stateChangeListener);
+    }
+};
+
+Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSelector(selector) {
+    var subscribers = this.subscriptions.collectSubscribers(selector);
+    
+    if (this.nextSubscriberCalls.length === 0) {
+        setTimeout(this.callSubscribers);
+    }
+    
+    for (var i = 0; i < subscribers.length; i++) {
+        var subscriber = subscribers[i];
+        if (this.nextSubscriberCalls.indexOf(subscriber) === NO_INDEX) {
+            this.nextSubscriberCalls.push(subscriber);
+        }
+    }
+};
+
+Store.prototype.callSubscribers = function callSubscribers() {
+    for (var i = 0; i < this.nextSubscriberCalls.length; i++) {
+        this.nextSubscriberCalls[i]();
+    }
 };
