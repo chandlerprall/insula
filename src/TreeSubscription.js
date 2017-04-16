@@ -1,5 +1,6 @@
 var NO_INDEX = -1;
 var ONE_BEFORE_LAST_INDEX = -1;
+var ONE_ITEM = 1;
 
 export function Node(selectorPath) {
     this.selectorPath = selectorPath;
@@ -28,7 +29,7 @@ Node.prototype.addSubscriber = function addSubscriber(subscriber) {
 Node.prototype.removeSubscriber = function removeSubscriber(subscriber) {
     var subscriberIdx = this.subscribers.indexOf(subscriber);
     if (subscriberIdx !== NO_INDEX) {
-        this.subscribers.splice(subscriberIdx, 1);
+        this.subscribers.splice(subscriberIdx, ONE_ITEM);
     }
 };
 
@@ -37,7 +38,7 @@ export default function TreeSubscription(store) {
     this.root = new Node([]);
 }
 
-TreeSubscription.prototype.subscribeSelector = function subscribe(selector, subscriber) {
+TreeSubscription.prototype.subscribeSelector = function subscribeSelector(selector, subscriber) {
     var currentNode = this.root;
     
     // walk tree, creating new nodes

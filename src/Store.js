@@ -1,7 +1,9 @@
 import TreeSubscription from './TreeSubscription';
 
 var NO_INDEX = -1;
+var ZERO_LENGTH = 0;
 var REMOVE_ONE_ITEM = 1;
+var ONE_BEFORE_LAST_INDEX = -1;
 
 export default function Store(initialState) {
     this.state = initialState || {};
@@ -43,10 +45,10 @@ Store.prototype.setState = function setState(state) {
 };
 
 Store.prototype.setPartialState = function setPartialState(selector, value) {
-    var lastKey = selector[selector.length - 1];
+    var lastKey = selector[selector.length + ONE_BEFORE_LAST_INDEX];
     
     var currentValue = this.getState();
-    for (var i = 0; i < selector.length - 1; i++) {
+    for (var i = 0; i < selector.length + ONE_BEFORE_LAST_INDEX; i++) {
         var key = selector[i];
         if (currentValue.hasOwnProperty(key) === false) {
             currentValue[key] = {};
@@ -126,7 +128,7 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
 Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSelector(selector) {
     var subscribers = this.subscriptions.collectSubscribers(selector);
     
-    if (this.nextSubscriberCalls.length === 0) {
+    if (this.nextSubscriberCalls.length === ZERO_LENGTH) {
         setTimeout(this.callSubscribers);
     }
     
