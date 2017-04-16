@@ -301,5 +301,19 @@ describe('Store', () => {
                 ]);
             });
         });
+    
+        it('doesn\'t call an unrelated subscription', () => {
+            const store = new Store({one: '1', two: {sub: {key: 'value'}}});
+        
+            const listener = jest.fn();
+        
+            store.subscribeToState([['two', 'sub']], listener);
+        
+            store.setPartialState(['two', 'three'], 'val');
+        
+            return testAfterNextTick(() => {
+                expect(listener.mock.calls).toEqual([]);
+            });
+        });
     });
 });
