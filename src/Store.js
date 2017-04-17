@@ -124,6 +124,12 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
     for (var i = 0; i < selectors.length; i++) {
         this.subscriptions.subscribeSelector(selectors[i], stateChangeListener);
     }
+    
+    return function unsubscribeToState() {
+        for (var i = 0; i < selectors.length; i++) {
+            store.subscriptions.unsubscribeSelector(selectors[i], stateChangeListener);
+        }
+    };
 };
 
 Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSelector(selector) {

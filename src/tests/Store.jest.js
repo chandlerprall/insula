@@ -315,5 +315,30 @@ describe('Store', () => {
                 expect(listener.mock.calls).toEqual([]);
             });
         });
+    
+        it('returns a function to unsubscribe listeners', () => {
+            const store = new Store({one: '1', two: {sub: {key: 'value'}}});
+        
+            const listener = jest.fn();
+        
+            const unsubscribe = store.subscribeToState([['two', 'sub']], listener);
+        
+            expect(unsubscribe).toBeInstanceOf(Function);
+        });
+    
+        it('correctly unsubscribes listeners', () => {
+            const store = new Store({one: '1', two: {sub: {key: 'value'}}});
+    
+            const listener = jest.fn();
+    
+            const unsubscribe = store.subscribeToState([['two', 'sub']], listener);
+            unsubscribe();
+            
+            store.setPartialState(['two', 'sub', 'key'], 'val');
+    
+            return testAfterNextTick(() => {
+                expect(listener.mock.calls).toEqual([]);
+            });
+        });
     });
 });
