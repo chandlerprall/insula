@@ -1,11 +1,3 @@
 {
-  "presets": [
-    "es2015",
-    "react"
-  ],
-  "plugins": [
-    "transform-flow-strip-types",
-    "transform-object-rest-spread",
-    "babel-plugin-jsx-display-if"
-  ]
+  "presets": ["es2015", "react"]
 }

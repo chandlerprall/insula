@@ -1,26 +1,230 @@
 {
   "name": "react-insula",
-  "version": "1.0.0",
-  "peer": {
-    "insula": "1.0.0",
-    "react": "^15.3.1"
+  "version": "2.0.0-alpha",
+  "main": "build/react-insula.js",
+  "scripts": {
+    "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
+    "lint": "./node_modules/.bin/eslint .",
+    "test": "./node_modules/.bin/jest",
+    "test-watch": "./node_modules/.bin/jest --watchAll"
+  },
+  "peerDependencies": {
+    "insula": "^2.0.0",
+    "prop-types": "^15.5.0",
+    "react": "^0.13.0 || ^0.14.0 || ^15.0.0"
   },
   "author": "Chandler Prall <chandler.prall@gmail.com>",
   "license": "MIT",
+  "jest": {
+    "collectCoverage": true,
+    "notify": true,
+    "transform": {
+      "^((?!node_modules).)+?\\.js$": "babel-jest"
+    },
+    "testRegex": "^((?!node_modules).)+?\\.jest\\.js$",
+    "resetModules": true,
+    "cacheDirectory": "<rootDir>/.jestcache"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "plugins": [
+      "react"
+    ],
+    "extends": "eslint:recommended",
+    "rules": {
+      "array-bracket-spacing": [
+        "warn",
+        "never"
+      ],
+      "array-callback-return": "error",
+      "arrow-body-style": "error",
+      "arrow-parens": [
+        "error",
+        "as-needed"
+      ],
+      "arrow-spacing": "error",
+      "block-spacing": [
+        "warn",
+        "never"
+      ],
+      "brace-style": [
+        "warn",
+        "1tbs"
+      ],
+      "comma-dangle": [
+        "warn",
+        "always-multiline"
+      ],
+      "comma-spacing": "warn",
+      "complexity": [
+        "error",
+        5
+      ],
+      "consistent-return": "error",
+      "curly": [
+        "warn",
+        "all"
+      ],
+      "default-case": "error",
+      "dot-location": [
+        "warn",
+        "property"
+      ],
+      "dot-notation": "warn",
+      "eqeqeq": [
+        "error",
+        "always",
+        {
+          "null": "never"
+        }
+      ],
+      "func-call-spacing": "warn",
+      "func-name-matching": "warn",
+      "func-names": [
+        "warn",
+        "as-needed"
+      ],
+      "guard-for-in": "error",
+      "id-blacklist": [
+        "warn",
+        "crap",
+        "shit",
+        "fuck",
+        "damn",
+        "butter"
+      ],
+      "indent": [
+        "error",
+        4
+      ],
+      "jsx-quotes": "error",
+      "key-spacing": "warn",
+      "keyword-spacing": "warn",
+      "max-depth": [
+        "warn",
+        3
+      ],
+      "max-nested-callbacks": [
+        "warn",
+        2
+      ],
+      "max-params": [
+        "error",
+        3
+      ],
+      "max-statements": [
+        "warn",
+        20
+      ],
+      "max-statements-per-line": [
+        "warn"
+      ],
+      "no-alert": "error",
+      "no-bitwise": "error",
+      "no-caller": "error",
+      "no-duplicate-imports": "warn",
+      "no-eval": "error",
+      "no-extra-bind": "warn",
+      "no-extra-parens": [
+        "error",
+        "all",
+        {
+          "ignoreJSX": "all"
+        }
+      ],
+      "no-implied-eval": "error",
+      "no-lone-blocks": "error",
+      "no-lonely-if": "warn",
+      "no-loop-func": "error",
+      "no-magic-numbers": "warn",
+      "no-mixed-operators": "error",
+      "no-multi-spaces": "warn",
+      "no-nested-ternary": "error",
+      "no-param-reassign": "warn",
+      "no-template-curly-in-string": "error",
+      "no-trailing-spaces": [
+        "warn",
+        {
+          "skipBlankLines": true
+        }
+      ],
+      "no-throw-literal": "warn",
+      "no-unneeded-ternary": "error",
+      "no-use-before-define": [
+        "warn",
+        {
+          "functions": false,
+          "classes": true
+        }
+      ],
+      "no-useless-escape": "error",
+      "no-useless-return": "warn",
+      "no-warning-comments": [
+        "warn",
+        {
+          "terms": [
+            "todo",
+            "fix",
+            "fixme"
+          ],
+          "location": "anywhere"
+        }
+      ],
+      "no-whitespace-before-property": "warn",
+      "object-curly-newline": "warn",
+      "object-curly-spacing": "warn",
+      "padded-blocks": [
+        "warn",
+        "never"
+      ],
+      "quote-props": [
+        "warn",
+        "as-needed"
+      ],
+      "quotes": [
+        "error",
+        "single"
+      ],
+      "radix": "error",
+      "react/jsx-uses-react": "error",
+      "semi": [
+        "error",
+        "always"
+      ],
+      "semi-spacing": "warn",
+      "space-before-blocks": [
+        "warn",
+        "always"
+      ],
+      "space-before-function-paren": [
+        "warn",
+        "never"
+      ],
+      "space-in-parens": [
+        "warn",
+        "never"
+      ],
+      "space-infix-ops": "warn"
+    }
+  },
   "devDependencies": {
-    "babel": "^6.5.2",
-    "babel-core": "^6.18.0",
-    "babel-loader": "^6.2.5",
-    "babel-plugin-jsx-display-if": "^3.0.0",
-    "babel-plugin-transform-object-rest-spread": "^6.16.0",
-    "babel-preset-es2015": "^6.16.0",
-    "babel-preset-react": "^6.16.0",
-    "gulp": "^3.9.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-webpack": "^1.5.0",
-    "react": "^15.3.1",
-    "react-dom": "^15.4.0-rc.4",
-    "vinyl-named": "^1.1.0",
-    "insula": "^1.0.0"
+    "babel-jest": "^19.0.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "eslint": "^3.19.0",
+    "eslint-plugin-react": "^6.10.3",
+    "jest": "^19.0.2",
+    "prop-types": "^15.5.8",
+    "react": "^15.5.4",
+    "react-test-renderer": "^15.5.4",
+    "rollup": "^0.41.6",
+    "rollup-plugin-babel": "^2.7.1"
   }
 }
