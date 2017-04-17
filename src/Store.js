@@ -1,4 +1,5 @@
 import TreeSubscription from './TreeSubscription';
+import nextTick from 'next-tick';
 
 var NO_INDEX = -1;
 var ZERO_LENGTH = 0;
@@ -129,7 +130,7 @@ Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSele
     var subscribers = this.subscriptions.collectSubscribers(selector);
     
     if (this.nextSubscriberCalls.length === ZERO_LENGTH) {
-        setTimeout(this.callSubscribers);
+        nextTick(this.callSubscribers);
     }
     
     for (var i = 0; i < subscribers.length; i++) {

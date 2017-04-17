@@ -1,9 +1,12 @@
 {
   "name": "insula",
   "version": "2.0.0-alpha",
+  "main": "build/insula.js",
   "scripts": {
+    "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
     "lint": "./node_modules/.bin/eslint .",
-    "test": "./node_modules/.bin/jest --watchAll"
+    "test": "./node_modules/.bin/jest",
+    "test-watch": "./node_modules/.bin/jest --watchAll"
   },
   "author": "Chandler Prall <chandler.prall@gmail.com>",
   "license": "MIT",
@@ -202,7 +205,10 @@
     "babel-jest": "^19.0.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
     "eslint": "^3.19.0",
-    "jest": "^19.0.2"
-  },
-  "dependencies": {}
+    "jest": "^19.0.2",
+    "next-tick": "^1.0.0",
+    "rollup": "^0.41.6",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0"
+  }
 }
