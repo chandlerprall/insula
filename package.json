@@ -7,7 +7,7 @@
     "lint": "./node_modules/.bin/eslint .",
     "test": "./node_modules/.bin/jest",
     "test-watch": "./node_modules/.bin/jest --watchAll",
-    "build-examples": "npm run build-example-counter && build-example-todo",
+    "build-examples": "npm run build-example-counter && npm run build-example-todo",
     "build-example-counter": "./node_modules/.bin/rollup -c examples/rollup.config.js --input examples/counter/Counter.js --output examples/build/counter.js",
     "build-example-todo": "./node_modules/.bin/rollup -c examples/rollup.config.js --input examples/todo/Todo.js --output examples/build/todo.js"
   },
