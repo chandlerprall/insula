@@ -151,4 +151,5 @@ Store.prototype.callSubscribers = function callSubscribers() {
     for (var i = 0; i < this.nextSubscriberCalls.length; i++) {
         this.nextSubscriberCalls[i]();
     }
+    this.nextSubscriberCalls.length = 0;
 };
