@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 export default [
     {
         event: 'UPDATE_NEXT_TODO',

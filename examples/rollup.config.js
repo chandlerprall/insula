@@ -21,8 +21,8 @@ export default {
         noderesolve(),
         commonjs({
             namedExports: {
-                'react': [
-                    'Component'
+                react: [
+                    'Component',
                 ],
                 'node_modules/prop-types/index.js': [
                     'any',
