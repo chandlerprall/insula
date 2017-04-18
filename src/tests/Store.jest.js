@@ -80,6 +80,7 @@ describe('Store', () => {
             expect(options.getState).toBeInstanceOf(Function);
             expect(options.setState).toBeInstanceOf(Function);
             expect(options.setPartialState).toBeInstanceOf(Function);
+            expect(options.getPartialState).toBeInstanceOf(Function);
         });
         
         it('doesn\'t error when dispatching unknown events', () => {

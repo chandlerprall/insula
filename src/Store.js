@@ -101,6 +101,7 @@ Store.prototype.createEventOptions = function createEventOptions() {
         getState: this.getState.bind(this),
         setState: this.setState.bind(this),
         setPartialState: this.setPartialState.bind(this),
+        getPartialState: this.getPartialState.bind(this),
     };
 };
 
