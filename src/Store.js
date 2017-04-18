@@ -89,7 +89,7 @@ Store.prototype.internalDispatch = function internalDispatch(event) {
         var payload = this.currentPayload;
         var eventOptions = this.getEventOptions();
         for (var i = 0; i < listeners.length; i++) {
-            listeners[i].call(this, event, payload, eventOptions);
+            listeners[i](payload, eventOptions);
         }
     }
     this.currentPayload = null;

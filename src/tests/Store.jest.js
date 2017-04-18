@@ -60,7 +60,7 @@ describe('Store', () => {
             store.dispatch(EVENT, PAYLOAD);
     
             expect(listener.mock.calls).toEqual([
-                [EVENT, PAYLOAD, store.eventOptions]
+                [PAYLOAD, store.eventOptions]
             ]);
         });
     
@@ -75,7 +75,7 @@ describe('Store', () => {
             store.on(EVENT, listener);
             store.dispatch(EVENT, PAYLOAD);
     
-            const options = listener.mock.calls[0][2];
+            const options = listener.mock.calls[0][1];
             expect(options.dispatch).toBeInstanceOf(Function);
             expect(options.getState).toBeInstanceOf(Function);
             expect(options.setState).toBeInstanceOf(Function);
@@ -105,10 +105,10 @@ describe('Store', () => {
             store.dispatch(EVENT, PAYLOAD);
             
             expect(listener1.mock.calls).toEqual([
-                [EVENT, PAYLOAD, store.eventOptions]
+                [PAYLOAD, store.eventOptions]
             ]);
             expect(listener2.mock.calls).toEqual([
-                [EVENT, PAYLOAD, store.eventOptions]
+                [PAYLOAD, store.eventOptions]
             ]);
         });
         
@@ -127,8 +127,8 @@ describe('Store', () => {
             store.dispatch(EVENT2, PAYLOAD);
             
             expect(listener.mock.calls).toEqual([
-                [EVENT1, PAYLOAD, store.eventOptions],
-                [EVENT2, PAYLOAD, store.eventOptions]
+                [PAYLOAD, store.eventOptions],
+                [PAYLOAD, store.eventOptions]
             ]);
         });
         
@@ -206,7 +206,7 @@ describe('Store', () => {
         
             const EVENT = 'event';
         
-            const listener = jest.fn((event, payload, {setState}) => {
+            const listener = jest.fn((payload, {setState}) => {
                 setState(STATE2);
             });
         
@@ -224,7 +224,7 @@ describe('Store', () => {
         
             const EVENT = 'event';
         
-            const listener = jest.fn((event, payload, {setPartialState}) => {
+            const listener = jest.fn((payload, {setPartialState}) => {
                 setPartialState(['obj'], {key: 'val'});
             });
         
