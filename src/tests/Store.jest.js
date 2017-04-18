@@ -22,10 +22,15 @@ describe('Store', () => {
             const store = new Store(STATE);
             expect(store.getState()).toBe(STATE);
         });
-        
+    
         it('defaults to an empty state object', () => {
             const store = new Store();
             expect(store.getState()).toEqual({});
+        });
+    
+        it('allows the initial state to be a falsey value', () => {
+            const store = new Store(0);
+            expect(store.getState()).toEqual(0);
         });
     
         it('allows partial retrieval of state', () => {

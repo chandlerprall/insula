@@ -7,7 +7,7 @@ var REMOVE_ONE_ITEM = 1;
 var ONE_BEFORE_LAST_INDEX = -1;
 
 export default function Store(initialState) {
-    this.state = initialState || {};
+    this.state = initialState !== undefined ? initialState : {};
     this.listeners = {};
     this.subscriptions = new TreeSubscription(this);
     this.eventOptions = this.createEventOptions();
