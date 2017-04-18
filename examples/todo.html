@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Todo Example</title>
+        <style type="text/css">
+            body {
+                width: 300px;
+                margin: auto;
+                border: 1px solid #aaa;
+                border-top-color: transparent;
+                padding: 0 100px;
+                font-size: 16px;
+                font-family: Helvetica;
+            }
+
+            h1 {
+                text-align: center;
+            }
+
+            input {
+                font-size: 1rem;
+                display: inline-block;
+                box-sizing: border-box;
+                width: 100%;
+            }
+
+            button {
+                font-size: 1rem;
+                display: inline-block;
+                box-sizing: border-box;
+                width: 100%;
+                background-color: rgb(198, 241, 238);
+                border: 1px solid #aaa;
+                margin-bottom: 20px;
+            }
+            button:hover {
+                cursor: pointer;
+                background-color: rgb(135, 241, 241);
+            }
+
+            .strikeout {
+                text-decoration: line-through;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="application"></div>
+        <script type="text/javascript" src="./build/todo.js"></script>
+    </body>
+</html>

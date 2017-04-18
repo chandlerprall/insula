@@ -6,16 +6,29 @@ export default function connect(selectors, transformer) {
         class ConnectedComponent extends Component {
             constructor(...args) {
                 super(...args);
-                this.state = transformer(this.getValuesForSelectors(selectors));
+                this.store = this.context.insulaStore;
                 this.unsubscribeFromState = null;
                 
+                this.bindDispatch = (event, payload) => {
+                    if (payload === undefined) {
+                        return this.store.dispatch.bind(this.store, event);
+                    } else {
+                        return this.store.dispatch.bind(this.store, event, payload);
+                    }
+                };
+    
+                // create the options object that gets passed to the transformer
+                this.transformerOptions = {bindDispatch: this.bindDispatch};
+    
+                this.state = transformer(this.getValuesForSelectors(selectors), this.transformerOptions);
+    
                 this.onStateUpdate = stateValues => {
-                    this.setState(transformer(stateValues));
+                    this.setState(transformer(stateValues, this.transformerOptions));
                 };
             }
             
             componentDidMount() {
-                this.unsubscribeFromState = this.context.insulaStore.subscribeToState(selectors, this.onStateUpdate);
+                this.unsubscribeFromState = this.store.subscribeToState(selectors, this.onStateUpdate);
             }
             
             componentWillUnmount() {
@@ -24,7 +37,7 @@ export default function connect(selectors, transformer) {
             }
             
             getValuesForSelectors(selectors) {
-                const store = this.context.insulaStore;
+                const store = this.store;
                 let stateValues = [];
                 
                 for (let i = 0; i < selectors.length; i++) {
@@ -35,7 +48,7 @@ export default function connect(selectors, transformer) {
             }
             
             render() {
-                return <View {...this.props} {...this.state}/>;
+                return <View {...this.props} {...this.state} dispatch={this.store.dispatch.bind(this.store)}/>;
             }
         }
     

@@ -6,7 +6,8 @@
     "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
     "lint": "./node_modules/.bin/eslint .",
     "test": "./node_modules/.bin/jest",
-    "test-watch": "./node_modules/.bin/jest --watchAll"
+    "test-watch": "./node_modules/.bin/jest --watchAll",
+    "build-example-todo": "./node_modules/.bin/rollup -c examples/rollup.config.js --input examples/todo/Todo.js --output examples/build/todo.js"
   },
   "peerDependencies": {
     "insula": "^2.0.0",
@@ -193,6 +194,7 @@
       ],
       "radix": "error",
       "react/jsx-uses-react": "error",
+      "react/jsx-uses-vars": "error",
       "semi": [
         "error",
         "always"
@@ -223,8 +225,13 @@
     "jest": "^19.0.2",
     "prop-types": "^15.5.8",
     "react": "^15.5.4",
+    "react-dom": "^15.5.4",
     "react-test-renderer": "^15.5.4",
     "rollup": "^0.41.6",
-    "rollup-plugin-babel": "^2.7.1"
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-commonjs": "^8.0.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-replace": "^1.1.1",
+    "rollup-watch": "^3.2.2"
   }
 }

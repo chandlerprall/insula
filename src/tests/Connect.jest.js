@@ -24,16 +24,38 @@ describe('Connector', () => {
     describe('connection to state', () => {
         it('immediately renders the child component with selected state', () => {
             const SUB_STATE = {two: 'value'};
-            
+        
             class TestComponent extends Component {
                 render() {
                     return <div/>;
                 }
             }
             TestComponent.displayName = 'TestComponent';
-            
+        
             const connectedComponent = connect([], () => ({}))(TestComponent);
             expect(connectedComponent.displayName).toBe(`Insula(${TestComponent.displayName})`);
+        });
+    
+        it('passes a dispatch function to the connected view', () => {
+            const store = new InsulaStore({});
+    
+            const renderFn = jest.fn(() => <div/>);
+            
+            class TestComponent extends Component {
+                render() {
+                    return renderFn(this.props);
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+    
+            const ConnectedComponent = connect([], () => ({}))(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+    
+            expect(renderFn.mock.calls).toHaveLength(1);
+            expect(renderFn.mock.calls[0]).toHaveLength(1);
+            expect(renderFn.mock.calls[0][0].dispatch).toBeInstanceOf(Function);
+    
+            renderer.unmount(); // cleanup
         });
     
         it('calls the transformer with selected state', () => {
@@ -53,8 +75,8 @@ describe('Connector', () => {
             const ConnectedComponent = connect(selectors, transformer)(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
         
-            expect(transformer.mock.calls).toEqual([
-                [[SUB_STATE, SUB_STATE.two]]
+            expect(transformer.mock.calls).toMatchObject([
+                [[SUB_STATE, SUB_STATE.two], {}]
             ]);
     
             renderer.unmount(); // cleanup
@@ -77,7 +99,7 @@ describe('Connector', () => {
             const ConnectedComponent = connect([], transformer)(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
         
-            expect(renderFn.mock.calls).toEqual([
+            expect(renderFn.mock.calls).toMatchObject([
                 [{one: '1', two: 2}]
             ]);
     
@@ -101,7 +123,7 @@ describe('Connector', () => {
             const ConnectedComponent = connect([], transformer)(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent prop="erty"/></StoreComponent>);
         
-            expect(renderFn.mock.calls).toEqual([
+            expect(renderFn.mock.calls).toMatchObject([
                 [{one: '1', two: 2, prop: 'erty'}]
             ]);
     
@@ -125,7 +147,7 @@ describe('Connector', () => {
             const ConnectedComponent = connect([], transformer)(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent foo="bar"/></StoreComponent>);
         
-            expect(renderFn.mock.calls).toEqual([
+            expect(renderFn.mock.calls).toMatchObject([
                 [{foo: 'baz'}]
             ]);
             
@@ -150,9 +172,9 @@ describe('Connector', () => {
             return testAfterNextTick(() => {
                 store.setPartialState(['one', 'two'], 'val');
             }).then(() => testAfterNextTick(() => {
-                expect(transformer.mock.calls).toEqual([
-                    [['value']],
-                    [['val']],
+                expect(transformer.mock.calls).toMatchObject([
+                    [['value'], {}],
+                    [['val'], {}],
                 ]);
     
                 renderer.unmount(); // cleanup
@@ -179,13 +201,99 @@ describe('Connector', () => {
             return testAfterNextTick(() => {
                 store.setPartialState(['one', 'two'], 'val');
             }).then(() => testAfterNextTick(() => {
-                expect(renderFn.mock.calls).toEqual([
+                expect(renderFn.mock.calls).toMatchObject([
                     [{prop: 'value'}],
                     [{prop: 'val'}],
                 ]);
         
                 renderer.unmount(); // cleanup
             }));
+        });
+    });
+    
+    describe('Transformer options', () => {
+        it('passes a bindDispatch option', () => {
+            const store = new InsulaStore({one: {two: 'value'}});
+        
+            class TestComponent extends Component {
+                render() {
+                    return <div/>
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+        
+            const transformer = jest.fn(() => ({}));
+        
+            const ConnectedComponent = connect([[]], transformer)(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+        
+            expect(transformer.mock.calls).toHaveLength(1);
+            expect(transformer.mock.calls[0]).toHaveLength(2);
+            expect(transformer.mock.calls[0][1].bindDispatch).toBeInstanceOf(Function);
+        });
+    
+        it('calling bindDispatch with an event and payload returns a curried function that does dispatch the event and payload', () => {
+            const store = new InsulaStore({one: {two: 'value'}});
+        
+            const EVENT = 'event';
+            const PAYLOAD = {};
+        
+            const listener = jest.fn();
+            store.on(EVENT, listener);
+        
+            class TestComponent extends Component {
+                render() {
+                    return <div/>
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+        
+            const transformer = jest.fn(([state], {bindDispatch}) => {
+                const eventDispatcher = bindDispatch(EVENT, PAYLOAD);
+            
+                // don't ever do this in a real system, but hey it works \o/
+                eventDispatcher();
+                return {};
+            });
+        
+            const ConnectedComponent = connect([['one', 'two']], transformer)(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+        
+            expect(listener.mock.calls).toMatchObject([
+                [PAYLOAD, {}]
+            ]);
+        });
+    
+        it('calling bindDispatch with an event and no payload returns a curried function that allows payload to be specified', () => {
+            const store = new InsulaStore({one: {two: 'value'}});
+        
+            const EVENT = 'event';
+            const PAYLOAD = {};
+        
+            const listener = jest.fn();
+            store.on(EVENT, listener);
+        
+            class TestComponent extends Component {
+                render() {
+                    return <div/>
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+        
+            const transformer = jest.fn(([state], {bindDispatch}) => {
+                const eventDispatcher = bindDispatch(EVENT);
+            
+                // don't ever do this in a real system, but hey it works \o/
+                eventDispatcher(PAYLOAD);
+                return {};
+            });
+        
+            const ConnectedComponent = connect([['one', 'two']], transformer)(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+        
+            expect(listener.mock.calls).toMatchObject([
+                [PAYLOAD, {}]
+            ]);
         });
     });
 });
