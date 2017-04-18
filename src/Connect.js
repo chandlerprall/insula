@@ -23,7 +23,7 @@ export default function connect(selectors, transformer) {
                 this.state = transformer(this.getValuesForSelectors(selectors), this.transformerOptions);
     
                 this.onStateUpdate = stateValues => {
-                    this.setState(transformer(stateValues, this.transformerOptions));
+                    this.setState(transformer([...stateValues, this.props], this.transformerOptions));
                 };
             }
             
@@ -43,6 +43,7 @@ export default function connect(selectors, transformer) {
                 for (let i = 0; i < selectors.length; i++) {
                     stateValues.push(store.getPartialState(selectors[i]));
                 }
+                stateValues.push(this.props);
                 
                 return stateValues;
             }

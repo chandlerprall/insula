@@ -36,6 +36,28 @@ describe('Connector', () => {
             expect(connectedComponent.displayName).toBe(`Insula(${TestComponent.displayName})`);
         });
     
+        it('includes component props when calling the transformer', () => {
+            const store = new InsulaStore({});
+            
+            class TestComponent extends Component {
+                render() {
+                    return <div/>;
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+        
+            const transformer = jest.fn(() => ({}));
+            
+            const ConnectedComponent = connect([], transformer)(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent foo="bar"/></StoreComponent>);
+    
+            expect(transformer.mock.calls).toMatchObject([
+                [[{foo: 'bar'}], {}]
+            ]);
+            
+            renderer.unmount(); // cleanup
+        });
+    
         it('passes a dispatch function to the connected view', () => {
             const store = new InsulaStore({});
     
@@ -76,7 +98,7 @@ describe('Connector', () => {
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
         
             expect(transformer.mock.calls).toMatchObject([
-                [[SUB_STATE, SUB_STATE.two], {}]
+                [[SUB_STATE, SUB_STATE.two, {}], {}]
             ]);
     
             renderer.unmount(); // cleanup
@@ -173,8 +195,8 @@ describe('Connector', () => {
                 store.setPartialState(['one', 'two'], 'val');
             }).then(() => testAfterNextTick(() => {
                 expect(transformer.mock.calls).toMatchObject([
-                    [['value'], {}],
-                    [['val'], {}],
+                    [['value', {}], {}],
+                    [['val', {}], {}],
                 ]);
     
                 renderer.unmount(); // cleanup
