@@ -347,4 +347,110 @@ describe('Store', () => {
             });
         });
     });
+    
+    describe('Middleware', () => {
+        it('calls the constructor middleware', () => {
+            const constructorfn1 = jest.fn();
+            const constructorfn2 = jest.fn();
+            
+            const store = new Store({}, [
+                {constructor: constructorfn1},
+                {constructor: constructorfn2},
+            ]);
+            
+            expect(constructorfn1.mock.calls).toHaveLength(1);
+            expect(constructorfn1.mock.instances).toEqual([store]);
+            
+            expect(constructorfn2.mock.calls).toHaveLength(1);
+            expect(constructorfn2.mock.instances).toEqual([store]);
+        });
+    
+        it('calls the setState middleware', () => {
+            const setstatefn = jest.fn(args => args);
+            const STATE1 = {};
+            const STATE2 = {};
+        
+            const store = new Store(STATE1, [{setState: setstatefn}]);
+            store.setState(STATE2);
+        
+            expect(setstatefn.mock.calls).toEqual([
+                [[STATE1]],
+                [[STATE2]],
+            ]);
+        });
+    
+        it('calls the setPartialState middleware', () => {
+            const setpartialstatefn = jest.fn(args => [['foo2'], 'baz']);
+            const STATE1 = {foo: 'bar'};
+            const STATE2 = {foo: 'bar', foo2: 'baz'};
+        
+            const store = new Store(STATE1, [{setPartialState: setpartialstatefn}]);
+            store.setPartialState(['foo'], 'baz');
+        
+            expect(setpartialstatefn.mock.calls).toEqual([
+                [[['foo'], 'baz']],
+            ]);
+            expect(store.state).toEqual(STATE2);
+        });
+    
+        it('calls the getState middleware', () => {
+            const STATE1 = {foo: 'bar'};
+            const STATE2 = {foo: 'bar', foo2: 'baz'};
+            const getstatefn = jest.fn(args => [STATE2]);
+        
+            const store = new Store(STATE1, [{getState: getstatefn}]);
+    
+            expect(store.getState()).toEqual(STATE2);
+            expect(getstatefn.mock.calls).toEqual([
+                [[STATE1]],
+            ]);
+        });
+    
+        it('calls the getPartialStateParseSelector middleware', () => {
+            const STATE1 = {foo: 'bar', foo2: 'baz'};
+            const getpartialstatefn = jest.fn(args => [['foo2']]);
+        
+            const store = new Store(STATE1, [{getPartialStateParseSelector: getpartialstatefn}]);
+            const selector = ['foo'];
+        
+            expect(store.getPartialState(selector)).toEqual('baz');
+            expect(getpartialstatefn.mock.calls).toEqual([
+                [[selector]],
+            ]);
+        });
+    
+        it('calls the getPartialStateReturn middleware', () => {
+            const STATE1 = {foo: 'bar'};
+            const getpartialstatefn = jest.fn(args => ['baz']);
+        
+            const store = new Store(STATE1, [{getPartialStateReturn: getpartialstatefn}]);
+            
+            expect(store.getPartialState(['foo'])).toEqual('baz');
+            expect(getpartialstatefn.mock.calls).toEqual([
+                [['bar']],
+            ]);
+        });
+        
+        it('calls the dispatch middleware', () => {
+            const EVENT1 = 'event1';
+            const EVENT2 = 'event2';
+            const PAYLOAD1 = {};
+            const PAYLOAD2 = {};
+            
+            const dispatchfn = jest.fn(([event, payload]) => [EVENT2, PAYLOAD2]);
+            const store = new Store({}, [{dispatch: dispatchfn}]);
+            
+            const listener = jest.fn();
+            store.on(EVENT2, listener);
+            
+            store.dispatch(EVENT1, PAYLOAD1);
+            
+            expect(dispatchfn.mock.calls).toEqual([
+                [[EVENT1, PAYLOAD1]],
+            ]);
+            expect(listener.mock.calls).toEqual([
+                [PAYLOAD2, store.eventOptions],
+            ]);
+        });
+    });
 });

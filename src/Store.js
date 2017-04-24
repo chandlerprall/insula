@@ -6,25 +6,42 @@ var ZERO_LENGTH = 0;
 var REMOVE_ONE_ITEM = 1;
 var ONE_BEFORE_LAST_INDEX = -1;
 
-export default function Store(initialState) {
-    this.state = initialState !== undefined ? initialState : {};
+export default function Store(initialState, middleware) {
     this.listeners = {};
     this.subscriptions = new TreeSubscription(this);
     this.eventOptions = this.createEventOptions();
+    this.middleware = middleware || [];
     
     this.callSubscribers = this.callSubscribers.bind(this);
     this.nextSubscriberCalls = [];
+    
+    this.setState(initialState !== undefined ? initialState : {});
+    
+    // call any middleware constructors
+    this.callMiddleware('constructor');
 }
 
+Store.prototype.callMiddleware = function callMiddleware(type, args) {
+    var currentArgs = args;
+    for (var i = 0; i < this.middleware.length; i++) {
+        var middlewareItem = this.middleware[i];
+        if (middlewareItem.hasOwnProperty(type)) {
+            currentArgs = middlewareItem[type].call(this, currentArgs);
+        }
+    }
+    return currentArgs;
+};
+
 Store.prototype.getState = function getState() {
-    return this.state;
+    return this.callMiddleware('getState', [this.state])[0];
 };
 
 Store.prototype.getPartialState = function getPartialState(selector) {
+    var processedSelector = this.callMiddleware('getPartialStateParseSelector', [selector])[0];
     var currentValue = this.getState();
     
-    for (var i = 0; i < selector.length; i++) {
-        var key = selector[i];
+    for (var i = 0; i < processedSelector.length; i++) {
+        var key = processedSelector[i];
         if (currentValue.hasOwnProperty(key)) {
             currentValue = currentValue[key];
         } else {
@@ -32,28 +49,33 @@ Store.prototype.getPartialState = function getPartialState(selector) {
         }
     }
     
-    return currentValue;
+    
+    return this.callMiddleware('getPartialStateReturn', [currentValue])[0];
 };
 
 Store.prototype.setState = function setState(state) {
-    this.state = state;
+    this.state = this.callMiddleware('setState', [state])[0];
     this.callSubscribersUnderSelector([]);
 };
 
 Store.prototype.setPartialState = function setPartialState(selector, value) {
-    var lastKey = selector[selector.length + ONE_BEFORE_LAST_INDEX];
+    var args = this.callMiddleware('setPartialState', [selector, value]);
+    var processedSelector = args[0];
+    var processedValue = args[1];
+    
+    var lastKey = processedSelector[processedSelector.length + ONE_BEFORE_LAST_INDEX];
     
     var currentValue = this.getState();
-    for (var i = 0; i < selector.length + ONE_BEFORE_LAST_INDEX; i++) {
-        var key = selector[i];
+    for (var i = 0; i < processedSelector.length + ONE_BEFORE_LAST_INDEX; i++) {
+        var key = processedSelector[i];
         if (currentValue.hasOwnProperty(key) === false) {
             currentValue[key] = {};
         }
         currentValue = currentValue[key];
     }
     
-    currentValue[lastKey] = value;
-    this.callSubscribersUnderSelector(selector);
+    currentValue[lastKey] = processedValue;
+    this.callSubscribersUnderSelector(processedSelector);
 };
 
 Store.prototype.on = function on(event, listener) {
@@ -74,11 +96,15 @@ Store.prototype.off = function off(event, listener) {
 };
 
 Store.prototype.dispatch = function dispatch(event, payload) {
-    var listeners = this.listeners[event];
+    var processed = this.callMiddleware('dispatch', [event, payload]);
+    var processedEvent = processed[0];
+    var processedPayload = processed[1];
+    
+    var listeners = this.listeners[processedEvent];
     if (listeners !== undefined) {
         var eventOptions = this.getEventOptions();
         for (var i = 0; i < listeners.length; i++) {
-            listeners[i](payload, eventOptions);
+            listeners[i](processedPayload, eventOptions);
         }
     }
 };
