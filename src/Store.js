@@ -12,11 +12,6 @@ export default function Store(initialState) {
     this.subscriptions = new TreeSubscription(this);
     this.eventOptions = this.createEventOptions();
     
-    // To avoid creating polymorphic function usage of the internal dispatching code
-    // `dispatch` thinly wraps the `internalDispatch` method by first setting
-    // `this.currentPayload`
-    this.currentEventPayload = null;
-    
     this.callSubscribers = this.callSubscribers.bind(this);
     this.nextSubscriberCalls = [];
 }
@@ -79,20 +74,13 @@ Store.prototype.off = function off(event, listener) {
 };
 
 Store.prototype.dispatch = function dispatch(event, payload) {
-    this.currentPayload = payload;
-    this.internalDispatch(event);
-};
-
-Store.prototype.internalDispatch = function internalDispatch(event) {
     var listeners = this.listeners[event];
     if (listeners !== undefined) {
-        var payload = this.currentPayload;
         var eventOptions = this.getEventOptions();
         for (var i = 0; i < listeners.length; i++) {
             listeners[i](payload, eventOptions);
         }
     }
-    this.currentPayload = null;
 };
 
 Store.prototype.createEventOptions = function createEventOptions() {
