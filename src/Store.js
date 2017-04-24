@@ -5,6 +5,8 @@ var NO_INDEX = -1;
 var ZERO_LENGTH = 0;
 var REMOVE_ONE_ITEM = 1;
 var ONE_BEFORE_LAST_INDEX = -1;
+var FIRST_INDEX = 0;
+var SECOND_INDEX = 1;
 
 export default function Store(initialState, middleware) {
     this.listeners = {};
@@ -33,11 +35,11 @@ Store.prototype.callMiddleware = function callMiddleware(type, args) {
 };
 
 Store.prototype.getState = function getState() {
-    return this.callMiddleware('getState', [this.state])[0];
+    return this.callMiddleware('getState', [this.state])[FIRST_INDEX];
 };
 
 Store.prototype.getPartialState = function getPartialState(selector) {
-    var processedSelector = this.callMiddleware('getPartialStateParseSelector', [selector])[0];
+    var processedSelector = this.callMiddleware('getPartialStateParseSelector', [selector])[FIRST_INDEX];
     var currentValue = this.getState();
     
     for (var i = 0; i < processedSelector.length; i++) {
@@ -50,18 +52,18 @@ Store.prototype.getPartialState = function getPartialState(selector) {
     }
     
     
-    return this.callMiddleware('getPartialStateReturn', [currentValue])[0];
+    return this.callMiddleware('getPartialStateReturn', [currentValue])[FIRST_INDEX];
 };
 
 Store.prototype.setState = function setState(state) {
-    this.state = this.callMiddleware('setState', [state])[0];
+    this.state = this.callMiddleware('setState', [state])[FIRST_INDEX];
     this.callSubscribersUnderSelector([]);
 };
 
 Store.prototype.setPartialState = function setPartialState(selector, value) {
     var args = this.callMiddleware('setPartialState', [selector, value]);
-    var processedSelector = args[0];
-    var processedValue = args[1];
+    var processedSelector = args[FIRST_INDEX];
+    var processedValue = args[SECOND_INDEX];
     
     var lastKey = processedSelector[processedSelector.length + ONE_BEFORE_LAST_INDEX];
     
@@ -97,8 +99,8 @@ Store.prototype.off = function off(event, listener) {
 
 Store.prototype.dispatch = function dispatch(event, payload) {
     var processed = this.callMiddleware('dispatch', [event, payload]);
-    var processedEvent = processed[0];
-    var processedPayload = processed[1];
+    var processedEvent = processed[FIRST_INDEX];
+    var processedPayload = processed[SECOND_INDEX];
     
     var listeners = this.listeners[processedEvent];
     if (listeners !== undefined) {
