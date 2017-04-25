@@ -1,6 +1,7 @@
 import React from 'react';
 import {func, number} from 'prop-types';
 import connect from '../../../src/Connect';
+import {ADJUST_VALUE} from '../CounterConstants';
 
 const ONE_VALUE = 1;
 
@@ -31,11 +32,22 @@ export default connect(
     ([value, props], {bindDispatch}) => {
         const {stepValue} = props;
         return {
-            countDown: bindDispatch('ADJUST_VALUE', -ONE_VALUE),
-            countUp: bindDispatch('ADJUST_VALUE', ONE_VALUE),
-            stepDown: bindDispatch('ADJUST_VALUE', -stepValue),
-            stepUp: bindDispatch('ADJUST_VALUE', stepValue),
+            countDown: bindDispatch(ADJUST_VALUE, -ONE_VALUE),
+            countUp: bindDispatch(ADJUST_VALUE, ONE_VALUE),
+            stepDown: bindDispatch(ADJUST_VALUE, -stepValue),
+            stepUp: bindDispatch(ADJUST_VALUE, stepValue),
             value,
         };
+    },
+    {
+        listeners: [
+            {
+                event: ADJUST_VALUE,
+                listener: (delta, {getState, setState}) => {
+                    const currentCount = getState();
+                    setState(currentCount + delta);
+                },
+            },
+        ],
     }
 )(CounterWidget);

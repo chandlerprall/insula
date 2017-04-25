@@ -6,20 +6,12 @@ import Store from 'insula';
 import NewTodoInput from './views/NewTodoInput';
 import TodoItems from './views/TodoItems';
 import CompletedItems from './views/CompletedItems';
-import eventHandlers from './eventhandlers';
-
-function attachEvents(store) {
-    eventHandlers.forEach(({event, handler}) => {
-        store.on(event, handler);
-    });
-}
 
 const store = new Store({
     nextTodo: '',
     todos: ['make application pretty'],
     completed: ['make todo app'],
 });
-attachEvents(store);
 
 ReactDOM.render(
     <Provider store={store}>

@@ -1,12 +1,13 @@
 import React, {Component} from 'react';
 import {object} from 'prop-types';
 
-export default function connect(selectors, transformer) {
+export default function connect(selectors, transformer, options = {}) {
     return function connector(View) {
         class ConnectedComponent extends Component {
             constructor(...args) {
                 super(...args);
                 this.store = this.context.insulaStore;
+                this.options = options;
                 this.unsubscribeFromState = null;
                 
                 this.bindDispatch = (event, payload) => {
@@ -28,10 +29,30 @@ export default function connect(selectors, transformer) {
             }
             
             componentDidMount() {
+                // add event listeners
+                const {listeners} = this.options;
+                if (listeners != null) {
+                    for (let i = 0; i < listeners.length; i++) {
+                        const {event, listener} = listeners[i];
+                        this.store.on(event, listener);
+                    }
+                }
+                
+                // add state subscriptions
                 this.unsubscribeFromState = this.store.subscribeToState(selectors, this.onStateUpdate);
             }
             
             componentWillUnmount() {
+                // remove event listeners
+                const {listeners} = this.options;
+                if (listeners != null) {
+                    for (let i = 0; i < listeners.length; i++) {
+                        const {event, listener} = listeners[i];
+                        this.store.off(event, listener);
+                    }
+                }
+                
+                // remove state subscriptions
                 this.unsubscribeFromState();
                 this.unsubscribeFromState = null;
             }

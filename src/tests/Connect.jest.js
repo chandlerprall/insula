@@ -252,6 +252,8 @@ describe('Connector', () => {
             expect(transformer.mock.calls).toHaveLength(1);
             expect(transformer.mock.calls[0]).toHaveLength(2);
             expect(transformer.mock.calls[0][1].bindDispatch).toBeInstanceOf(Function);
+    
+            renderer.unmount(); // cleanup
         });
     
         it('calling bindDispatch with an event and payload returns a curried function that does dispatch the event and payload', () => {
@@ -284,6 +286,8 @@ describe('Connector', () => {
             expect(listener.mock.calls).toMatchObject([
                 [PAYLOAD, {}]
             ]);
+    
+            renderer.unmount(); // cleanup
         });
     
         it('calling bindDispatch with an event and no payload returns a curried function that allows payload to be specified', () => {
@@ -312,6 +316,78 @@ describe('Connector', () => {
         
             const ConnectedComponent = connect([['one', 'two']], transformer)(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+        
+            expect(listener.mock.calls).toMatchObject([
+                [PAYLOAD, {}]
+            ]);
+    
+            renderer.unmount(); // cleanup
+        });
+    });
+    
+    describe('Runtime listeners', () => {
+        it('dispatches listeners after the component mounted', () => {
+            const store = new InsulaStore({});
+        
+            const EVENT = 'event';
+            const PAYLOAD = {};
+        
+            const listener = jest.fn();
+        
+            class TestComponent extends Component {
+                render() {
+                    return <div/>
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+        
+            const transformer = jest.fn(() => ({}));
+        
+            const ConnectedComponent = connect(
+                [],
+                transformer,
+                {listeners: [{event: EVENT, listener}]}
+            )(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+        
+            store.dispatch(EVENT, PAYLOAD);
+        
+            expect(listener.mock.calls).toMatchObject([
+                [PAYLOAD, {}]
+            ]);
+        
+            renderer.unmount(); // cleanup
+        });
+    
+        it(`doesn't dispatch listeners from components that have unmounted`, () => {
+            const store = new InsulaStore({});
+        
+            const EVENT = 'event';
+            const PAYLOAD = {};
+        
+            const listener = jest.fn();
+        
+            class TestComponent extends Component {
+                render() {
+                    return <div/>
+                }
+            }
+            TestComponent.displayName = 'TestComponent';
+        
+            const transformer = jest.fn(() => ({}));
+        
+            const ConnectedComponent = connect(
+                [],
+                transformer,
+                {listeners: [{event: EVENT, listener}]}
+            )(TestComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
+        
+            store.dispatch(EVENT, PAYLOAD); // this fires the listener
+    
+            renderer.unmount(); // cleanup
+    
+            store.dispatch(EVENT, PAYLOAD); // this one shouldn't fire the listener
         
             expect(listener.mock.calls).toMatchObject([
                 [PAYLOAD, {}]

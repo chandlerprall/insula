@@ -1,12 +1,13 @@
 import React from 'react';
 import {func, string} from 'prop-types';
 import connect from '../../../src/Connect';
+import {ADD_TODO, UPDATE_NEXT_TODO} from '../TodoConstants';
 
-function NewTodoInput({dispatch, nextTodo}) {
+function NewTodoInput({addTodo, nextTodo, updateTodo}) {
     return (
         <div>
-            <input type="text" value={nextTodo} onChange={e => dispatch('UPDATE_NEXT_TODO', e.target.value)} placeholder="new todo item"/>
-            <button onClick={() => dispatch('ADD_TODO')}>add</button>
+            <input type="text" value={nextTodo} onChange={e => updateTodo(e.target.value)} placeholder="new todo item"/>
+            <button onClick={addTodo}>add</button>
         </div>
     );
 }
@@ -14,11 +15,32 @@ function NewTodoInput({dispatch, nextTodo}) {
 NewTodoInput.displayName = 'NewTodoInput';
 
 NewTodoInput.propTypes = {
-    dispatch: func.isRequired,
+    addTodo: func.isRequired,
     nextTodo: string.isRequired,
+    updateTodo: func.isRequired,
 };
 
 export default connect(
     [['nextTodo']],
-    ([nextTodo]) => ({nextTodo})
+    ([nextTodo], {bindDispatch}) => ({
+        nextTodo,
+        addTodo: bindDispatch(ADD_TODO, nextTodo),
+        updateTodo: bindDispatch(UPDATE_NEXT_TODO),
+    }),
+    {
+        listeners: [
+            {
+                event: UPDATE_NEXT_TODO,
+                listener: (value, {setPartialState}) => {
+                    setPartialState(['nextTodo'], value);
+                },
+            },
+            {
+                event: ADD_TODO,
+                listener: (value, {setPartialState}) => {
+                    setPartialState(['nextTodo'], '');
+                },
+            },
+        ],
+    }
 )(NewTodoInput);

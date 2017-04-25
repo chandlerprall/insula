@@ -1,0 +1,1 @@
+export const ADJUST_VALUE = 'ADJUST_VALUE';
