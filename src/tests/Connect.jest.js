@@ -326,7 +326,7 @@ describe('Connector', () => {
     });
     
     describe('Runtime listeners', () => {
-        it('dispatches listeners after the component mounted', () => {
+        it('dispatches listeners after the component mounted with the component as context', () => {
             const store = new InsulaStore({});
         
             const EVENT = 'event';
@@ -334,7 +334,13 @@ describe('Connector', () => {
         
             const listener = jest.fn();
         
+            let theComponent;
             class TestComponent extends Component {
+                constructor(...args) {
+                    super(...args);
+                    theComponent = this;
+                }
+                
                 render() {
                     return <div/>
                 }
@@ -355,6 +361,8 @@ describe('Connector', () => {
             expect(listener.mock.calls).toMatchObject([
                 [PAYLOAD, {}]
             ]);
+            
+            expect(listener.mock.instances).toEqual([theComponent]);
         
             renderer.unmount(); // cleanup
         });
@@ -363,7 +371,7 @@ describe('Connector', () => {
             const store = new InsulaStore({});
         
             const EVENT = 'event';
-            const PAYLOAD = {};
+            const PAYLOAD = {foo: 'thing'};
         
             const listener = jest.fn();
         

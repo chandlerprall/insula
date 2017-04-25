@@ -8,7 +8,9 @@ export default function connect(selectors, transformer, options = {}) {
                 super(...args);
                 this.store = this.context.insulaStore;
                 this.options = options;
+                this.addedListeners = [];
                 this.unsubscribeFromState = null;
+                this.componentRef = null;
                 
                 this.bindDispatch = (event, payload) => {
                     if (payload === undefined) {
@@ -34,7 +36,9 @@ export default function connect(selectors, transformer, options = {}) {
                 if (listeners != null) {
                     for (let i = 0; i < listeners.length; i++) {
                         const {event, listener} = listeners[i];
-                        this.store.on(event, listener);
+                        const boundListener = listener.bind(this.componentRef);
+                        this.addedListeners.push({event, listener: boundListener});
+                        this.store.on(event, boundListener);
                     }
                 }
                 
@@ -44,12 +48,9 @@ export default function connect(selectors, transformer, options = {}) {
             
             componentWillUnmount() {
                 // remove event listeners
-                const {listeners} = this.options;
-                if (listeners != null) {
-                    for (let i = 0; i < listeners.length; i++) {
-                        const {event, listener} = listeners[i];
-                        this.store.off(event, listener);
-                    }
+                for (let i = 0; i < this.addedListeners.length; i++) {
+                    const {event, listener} = this.addedListeners[i];
+                    this.store.off(event, listener);
                 }
                 
                 // remove state subscriptions
@@ -70,7 +71,11 @@ export default function connect(selectors, transformer, options = {}) {
             }
             
             render() {
-                return <View {...this.props} {...this.state} dispatch={this.store.dispatch.bind(this.store)}/>;
+                return <View
+                    ref={ref => this.componentRef = ref}
+                    {...this.props}
+                    {...this.state}
+                    dispatch={this.store.dispatch.bind(this.store)}/>;
             }
         }
     
