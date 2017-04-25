@@ -3,6 +3,7 @@ node_modules
 coverage
 .jestcache
 examples
+*.jest.js
 .babelrc
 .eslintignore
 rollup.config.js
