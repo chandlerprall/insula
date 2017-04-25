@@ -2,7 +2,6 @@ node_modules
 .idea
 coverage
 .jestcache
-build
 *.jest.js
 .babelrc
 .eslintignore
