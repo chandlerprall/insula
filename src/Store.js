@@ -132,25 +132,29 @@ Store.prototype.getEventOptions = function getEventOptions() {
 };
 
 Store.prototype.subscribeToState = function subscribeToState(selectors, listener) {
+    var processed = this.callMiddleware('subscribeToState', [selectors, listener]);
+    var processedSelectors = processed[0];
+    var processedListener = processed[1];
+    
     var store = this;
     var stateChangeListener = function() {
         // get state values
         var stateValues = [];
-        for (var i = 0; i < selectors.length; i++) {
-            stateValues.push(store.getPartialState(selectors[i]));
+        for (var i = 0; i < processedSelectors.length; i++) {
+            stateValues.push(store.getPartialState(processedSelectors[i]));
         }
         
         // call listener with all the state values
-        listener(stateValues);
+        processedListener(stateValues);
     };
     
-    for (var i = 0; i < selectors.length; i++) {
-        this.subscriptions.subscribeSelector(selectors[i], stateChangeListener);
+    for (var i = 0; i < processedSelectors.length; i++) {
+        this.subscriptions.subscribeSelector(processedSelectors[i], stateChangeListener);
     }
     
     return function unsubscribeToState() {
-        for (var i = 0; i < selectors.length; i++) {
-            store.subscriptions.unsubscribeSelector(selectors[i], stateChangeListener);
+        for (var i = 0; i < processedSelectors.length; i++) {
+            store.subscriptions.unsubscribeSelector(processedSelectors[i], stateChangeListener);
         }
     };
 };
