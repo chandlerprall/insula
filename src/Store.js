@@ -40,10 +40,14 @@ Store.prototype.getState = function getState() {
 
 Store.prototype.getPartialState = function getPartialState(selector) {
     var processedSelector = this.callMiddleware('getPartialStateParseSelector', [selector])[FIRST_INDEX];
+    return this.callMiddleware('getPartialStateReturn', [this.accessStateAtSelector(processedSelector)])[FIRST_INDEX];
+};
+
+Store.prototype.accessStateAtSelector = function accessStateAtSelector(selector) {
     var currentValue = this.getState();
     
-    for (var i = 0; i < processedSelector.length; i++) {
-        var key = processedSelector[i];
+    for (var i = 0; i < selector.length; i++) {
+        var key = selector[i];
         if (currentValue.hasOwnProperty(key)) {
             currentValue = currentValue[key];
         } else {
@@ -51,8 +55,7 @@ Store.prototype.getPartialState = function getPartialState(selector) {
         }
     }
     
-    
-    return this.callMiddleware('getPartialStateReturn', [currentValue])[FIRST_INDEX];
+    return currentValue;
 };
 
 Store.prototype.setState = function setState(state) {
@@ -64,20 +67,23 @@ Store.prototype.setPartialState = function setPartialState(selector, value) {
     var args = this.callMiddleware('setPartialState', [selector, value]);
     var processedSelector = args[FIRST_INDEX];
     var processedValue = args[SECOND_INDEX];
-    
-    var lastKey = processedSelector[processedSelector.length + ONE_BEFORE_LAST_INDEX];
+    this.setStateAtSelector(processedSelector, processedValue);
+    this.callSubscribersUnderSelector(processedSelector);
+};
+
+Store.prototype.setStateAtSelector = function setStateAtSelector(selector, value) {
+    var lastKey = selector[selector.length + ONE_BEFORE_LAST_INDEX];
     
     var currentValue = this.getState();
-    for (var i = 0; i < processedSelector.length + ONE_BEFORE_LAST_INDEX; i++) {
-        var key = processedSelector[i];
+    for (var i = 0; i < selector.length + ONE_BEFORE_LAST_INDEX; i++) {
+        var key = selector[i];
         if (currentValue.hasOwnProperty(key) === false) {
             currentValue[key] = {};
         }
         currentValue = currentValue[key];
     }
     
-    currentValue[lastKey] = processedValue;
-    this.callSubscribersUnderSelector(processedSelector);
+    currentValue[lastKey] = value;
 };
 
 Store.prototype.on = function on(event, listener) {
