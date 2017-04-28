@@ -15,21 +15,18 @@ export default connect(
         showStruckOut: true,
     }),
     {
-        listeners: [
-            {
-                event: UNCOMPLETE_ITEM,
-                listener: (itemIdx, {getPartialState, setPartialState}) => {
-                    const todos = getPartialState(['todos']);
-                    const completed = getPartialState(['completed']);
-    
-                    const uncompletedItem = completed[itemIdx];
-                    const newTodos = [uncompletedItem, ...todos];
-                    const newCompleted = completed.slice(FIRST_INDEX, itemIdx).concat(completed.slice(itemIdx + NEXT_INDEX));
-    
-                    setPartialState(['todos'], newTodos);
-                    setPartialState(['completed'], newCompleted);
-                },
+        listeners: {
+            [UNCOMPLETE_ITEM]: (itemIdx, {getPartialState, setPartialState}) => {
+                const todos = getPartialState(['todos']);
+                const completed = getPartialState(['completed']);
+
+                const uncompletedItem = completed[itemIdx];
+                const newTodos = [uncompletedItem, ...todos];
+                const newCompleted = completed.slice(FIRST_INDEX, itemIdx).concat(completed.slice(itemIdx + NEXT_INDEX));
+
+                setPartialState(['todos'], newTodos);
+                setPartialState(['completed'], newCompleted);
             },
-        ],
+        },
     }
 )(ItemList);

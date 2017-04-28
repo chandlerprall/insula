@@ -40,14 +40,11 @@ export default connect(
         };
     },
     {
-        listeners: [
-            {
-                event: ADJUST_VALUE,
-                listener: (delta, {getState, setState}) => {
-                    const currentCount = getState();
-                    setState(currentCount + delta);
-                },
+        listeners: {
+            [ADJUST_VALUE]: (delta, {getState, setState}) => {
+                const currentCount = getState();
+                setState(currentCount + delta);
             },
-        ],
+        },
     }
 )(CounterWidget);

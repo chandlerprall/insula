@@ -352,7 +352,7 @@ describe('Connector', () => {
             const ConnectedComponent = connect(
                 [],
                 transformer,
-                {listeners: [{event: EVENT, listener}]}
+                {listeners: {[EVENT]: listener}}
             )(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
         
@@ -387,7 +387,7 @@ describe('Connector', () => {
             const ConnectedComponent = connect(
                 [],
                 transformer,
-                {listeners: [{event: EVENT, listener}]}
+                {listeners: {[EVENT]: listener}}
             )(TestComponent);
             const renderer = TestRenderer.create(<StoreComponent store={store}><ConnectedComponent/></StoreComponent>);
         

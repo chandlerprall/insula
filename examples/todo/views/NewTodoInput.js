@@ -28,19 +28,13 @@ export default connect(
         updateTodo: bindDispatch(UPDATE_NEXT_TODO),
     }),
     {
-        listeners: [
-            {
-                event: UPDATE_NEXT_TODO,
-                listener: (value, {setPartialState}) => {
-                    setPartialState(['nextTodo'], value);
-                },
+        listeners: {
+            [UPDATE_NEXT_TODO]: (value, {setPartialState}) => {
+                setPartialState(['nextTodo'], value);
             },
-            {
-                event: ADD_TODO,
-                listener: (value, {setPartialState}) => {
-                    setPartialState(['nextTodo'], '');
-                },
+            [ADD_TODO]: (value, {setPartialState}) => {
+                setPartialState(['nextTodo'], '');
             },
-        ],
+        },
     }
 )(NewTodoInput);

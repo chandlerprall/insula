@@ -34,8 +34,10 @@ export default function connect(selectors, transformer, options = {}) {
                 // add event listeners
                 const {listeners} = this.options;
                 if (listeners != null) {
-                    for (let i = 0; i < listeners.length; i++) {
-                        const {event, listener} = listeners[i];
+                    const events = Object.keys(listeners);
+                    for (let i = 0; i < events.length; i++) {
+                        const event = events[i];
+                        const listener = listeners[event];
                         const boundListener = listener.bind(this.componentRef);
                         this.addedListeners.push({event, listener: boundListener});
                         this.store.on(event, boundListener);

@@ -167,15 +167,12 @@ export default connect(
     [[]],
     ([state]) => ({}),
     {
-        listeners: [
-            {
-                event: 'SEND_MESSAGE',
-                listener: (payload, {dispatch}) => {
-                    const {subject} = payload;
-                    dispatch('RECORD_ANALYTICS', {eventType: 'sentMessage', subject});
-                }
+        listeners: {
+            SEND_MESSAGE: (payload, {dispatch}) => {
+                const {subject} = payload;
+                dispatch('RECORD_ANALYTICS', {eventType: 'sentMessage', subject});
             }
-        ]
+        }
     }
 )(MyComponent);
 ```

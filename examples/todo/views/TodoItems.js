@@ -15,28 +15,22 @@ export default connect(
         showStruckOut: false,
     }),
     {
-        listeners: [
-            {
-                event: ADD_TODO,
-                listener: (payload, {getPartialState, setPartialState}) => {
-                    const newTodos = [...getPartialState(['todos']), payload];
-                    setPartialState(['todos'], newTodos);
-                },
+        listeners: {
+            [ADD_TODO]: (payload, {getPartialState, setPartialState}) => {
+                const newTodos = [...getPartialState(['todos']), payload];
+                setPartialState(['todos'], newTodos);
             },
-            {
-                event: COMPLETE_ITEM,
-                listener: (itemIdx, {getPartialState, setPartialState}) => {
-                    const todos = getPartialState(['todos']);
-                    const completed = getPartialState(['completed']);
-    
-                    const completedItem = todos[itemIdx];
-                    const newCompleted = [completedItem, ...completed];
-                    const newTodos = todos.slice(FIRST_INDEX, itemIdx).concat(todos.slice(itemIdx + NEXT_INDEX));
-    
-                    setPartialState(['todos'], newTodos);
-                    setPartialState(['completed'], newCompleted);
-                },
+            [COMPLETE_ITEM]: (itemIdx, {getPartialState, setPartialState}) => {
+                const todos = getPartialState(['todos']);
+                const completed = getPartialState(['completed']);
+
+                const completedItem = todos[itemIdx];
+                const newCompleted = [completedItem, ...completed];
+                const newTodos = todos.slice(FIRST_INDEX, itemIdx).concat(todos.slice(itemIdx + NEXT_INDEX));
+
+                setPartialState(['todos'], newTodos);
+                setPartialState(['completed'], newCompleted);
             },
-        ],
+        },
     }
 )(ItemList);
