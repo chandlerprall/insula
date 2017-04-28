@@ -133,8 +133,8 @@ Store.prototype.getEventOptions = function getEventOptions() {
 
 Store.prototype.subscribeToState = function subscribeToState(selectors, listener) {
     var processed = this.callMiddleware('subscribeToState', [selectors, listener]);
-    var processedSelectors = processed[0];
-    var processedListener = processed[1];
+    var processedSelectors = processed[FIRST_INDEX];
+    var processedListener = processed[SECOND_INDEX];
     
     var store = this;
     var stateChangeListener = function() {
