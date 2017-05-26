@@ -6,6 +6,7 @@ export default function connect(selectors, transformer, options = {}) {
         class ConnectedComponent extends Component {
             constructor(...args) {
                 super(...args);
+                this.hasMounted = false;
                 this.store = this.context.insulaStore;
                 this.options = options;
                 this.addedListeners = [];
@@ -26,11 +27,15 @@ export default function connect(selectors, transformer, options = {}) {
                 this.state = transformer(this.getValuesForSelectors(selectors), this.transformerOptions);
     
                 this.onStateUpdate = stateValues => {
-                    this.setState(transformer([...stateValues, this.props], this.transformerOptions));
+                    if (this.hasMounted) {
+                        this.setState(transformer([...stateValues, this.props], this.transformerOptions));
+                    }
                 };
             }
             
             componentDidMount() {
+                this.hasMounted = true;
+                
                 // add event listeners
                 const {listeners} = this.options;
                 if (listeners != null) {
@@ -49,6 +54,8 @@ export default function connect(selectors, transformer, options = {}) {
             }
             
             componentWillUnmount() {
+                this.hasMounted = false;
+                
                 // remove event listeners
                 for (let i = 0; i < this.addedListeners.length; i++) {
                     const {event, listener} = this.addedListeners[i];
