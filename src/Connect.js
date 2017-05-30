@@ -59,7 +59,7 @@ export default function connect(selectors, transformer, options = {}) {
             
             componentDidUpdate(prevProps) {
                 if (!shallowEquals(this.props, prevProps)) {
-                    this.stateValues[this.stateValues.length-1] = this.props; // update props portion of stateValues
+                    this.stateValues[this.stateValues.length - 1] = this.props; // update props portion of stateValues
                     this.setState(transformer(this.stateValues, this.transformerOptions));
                 }
             }
