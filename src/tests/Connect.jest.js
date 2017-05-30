@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import TestRenderer from 'react-test-renderer';
 import StoreComponent from '../Store';
 import InsulaStore from 'insula';
-import connect from '../Connect';
+import connect, {shallowEquals} from '../Connect';
 
 function testAfterNextTick(fn, delay = 0) {
     return new Promise((resolve, reject) => {
@@ -401,5 +401,92 @@ describe('Connector', () => {
                 [PAYLOAD, {}]
             ]);
         });
+    });
+    
+    describe('component prop updates', () => {
+        it('calls the transformer when input props are shallowly changed', () => {
+            const store = new InsulaStore({});
+    
+            class ChildComponent extends Component {
+                render() {
+                    return <div/>
+                }
+            }
+            ChildComponent.displayName = 'ChildComponent';
+    
+            let propForChild = 'bar';
+            class ParentComponent extends Component {
+                render() {
+                    return <ConnectedComponent foo={propForChild}/>;
+                }
+            }
+            ParentComponent.displayName = 'ParentComponent';
+    
+            const transformer = jest.fn(() => ({}));
+    
+            const ConnectedComponent = connect(
+                [],
+                transformer
+            )(ChildComponent);
+            const renderer = TestRenderer.create(<StoreComponent store={store}><ParentComponent/></StoreComponent>);
+    
+            expect(transformer.mock.calls[0][0][0]).toMatchObject({foo: 'bar'});
+            transformer.mockClear();
+    
+            propForChild = 'baz';
+            renderer.getInstance().forceUpdate();
+    
+            expect(transformer.mock.calls[0][0][0]).toMatchObject({foo: 'baz'});
+            transformer.mockClear();
+        });
+    });
+});
+
+describe('shallowEquals', () => {
+    it('returns true for objects that are empty', () => {
+        expect(shallowEquals(
+            {},
+            {}
+        )).toBe(true);
+    });
+    
+    it('returns true for objects that are shallowly equvilient', () => {
+        expect(shallowEquals(
+            {foo: 'bar'},
+            {foo: 'bar'}
+        )).toBe(true);
+    });
+    
+    it('returns true when all key/values match', () => {
+        expect(shallowEquals(
+            {foo: 'bar', bar: 'baz'},
+            {foo: 'bar', bar: 'baz'}
+        )).toBe(true);
+    });
+    
+    it('returns false when any key is different in obj2', () => {
+        expect(shallowEquals(
+            {foo: 'bar', bar: 'baz'},
+            {foo: 'bar', bar2: 'baz'}
+        )).toBe(false);
+    });
+    
+    it('returns false when any value is different in obj2', () => {
+        expect(shallowEquals(
+            {foo: 'bar', bar: 'baz'},
+            {foo: 'bar', bar: 'baz2'}
+        )).toBe(false);
+    });
+    
+    it('returns false when object key count differs', () => {
+        expect(shallowEquals(
+            {foo: 'bar', bar: 'baz'},
+            {foo: 'bar'}
+        )).toBe(false);
+    
+        expect(shallowEquals(
+            {foo: 'bar'},
+            {foo: 'bar', bar: 'baz'}
+        )).toBe(false);
     });
 });

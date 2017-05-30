@@ -1,6 +1,28 @@
 import React, {Component} from 'react';
 import {object} from 'prop-types';
 
+export function shallowEquals(obj1, obj2) {
+    const obj1Keys = Object.keys(obj1);
+    const obj2Keys = Object.keys(obj2);
+    
+    if (obj1Keys.length !== obj2Keys.length) {
+        return false;
+    }
+    
+    for (let i = 0; i < obj1Keys.length; i++) {
+        const key = obj1Keys[i];
+        if (obj2.hasOwnProperty(key)) {
+            if (obj1[key] !== obj2[key]) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 export default function connect(selectors, transformer, options = {}) {
     return function connector(View) {
         class ConnectedComponent extends Component {
@@ -12,6 +34,7 @@ export default function connect(selectors, transformer, options = {}) {
                 this.addedListeners = [];
                 this.unsubscribeFromState = null;
                 this.componentRef = null;
+                this.stateValues = this.getValuesForSelectors(selectors);
                 
                 this.bindDispatch = (event, payload) => {
                     if (payload === undefined) {
@@ -24,13 +47,21 @@ export default function connect(selectors, transformer, options = {}) {
                 // create the options object that gets passed to the transformer
                 this.transformerOptions = {bindDispatch: this.bindDispatch};
     
-                this.state = transformer(this.getValuesForSelectors(selectors), this.transformerOptions);
+                this.state = transformer(this.stateValues, this.transformerOptions);
     
                 this.onStateUpdate = stateValues => {
                     if (this.hasMounted) {
-                        this.setState(transformer([...stateValues, this.props], this.transformerOptions));
+                        this.stateValues = [...stateValues, this.props];
+                        this.setState(transformer(this.stateValues, this.transformerOptions));
                     }
                 };
+            }
+            
+            componentDidUpdate(prevProps) {
+                if (!shallowEquals(this.props, prevProps)) {
+                    this.stateValues[this.stateValues.length-1] = this.props; // update props portion of stateValues
+                    this.setState(transformer(this.stateValues, this.transformerOptions));
+                }
             }
             
             componentDidMount() {
