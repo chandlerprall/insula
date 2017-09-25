@@ -1,6 +1,6 @@
 {
   "name": "react-insula",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "main": "build/react-insula.js",
   "scripts": {
     "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
