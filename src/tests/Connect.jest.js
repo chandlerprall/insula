@@ -1,8 +1,11 @@
 import React, {Component} from 'react';
 import TestRenderer from 'react-test-renderer';
+import {shallow} from 'enzyme';
 import StoreComponent from '../Store';
 import InsulaStore from 'insula';
 import connect, {shallowEquals} from '../Connect';
+
+Component.test = 'ing';
 
 function testAfterNextTick(fn, delay = 0) {
     return new Promise((resolve, reject) => {
@@ -438,6 +441,62 @@ describe('Connector', () => {
     
             expect(transformer.mock.calls[0][0][0]).toMatchObject({foo: 'baz'});
             transformer.mockClear();
+        });
+    });
+    
+    describe('component ref', () => {
+        it('attaches a ref property to full component', () => {
+            const store = new InsulaStore({});
+            
+            class ParentComponent extends Component {
+                render() {
+                    return <div/>;
+                }
+            }
+            ParentComponent.displayName = 'ParentComponent';
+        
+            const transformer = jest.fn(() => ({}));
+        
+            const ConnectedComponent = connect(
+                [],
+                transformer
+            )(ParentComponent);
+            const wrapper = shallow(<StoreComponent store={store}><ConnectedComponent test="ing"/></StoreComponent>);
+        
+            const renderedConnectedComponent = wrapper.dive({
+                context: {
+                    insulaStore: store
+                }
+            });
+        
+            const refAttribute = renderedConnectedComponent.node.ref;
+            expect(refAttribute).toBeInstanceOf(Function);
+        });
+    
+        it('does not attach a ref property to a stateless functional component', () => {
+            const store = new InsulaStore({});
+            
+            function ParentComponent() {
+                return <div/>;
+            }
+            ParentComponent.displayName = 'ParentComponent';
+        
+            const transformer = jest.fn(() => ({}));
+        
+            const ConnectedComponent = connect(
+                [],
+                transformer
+            )(ParentComponent);
+            const wrapper = shallow(<StoreComponent store={store}><ConnectedComponent test="ing"/></StoreComponent>);
+        
+            const renderedConnectedComponent = wrapper.dive({
+                context: {
+                    insulaStore: store
+                }
+            });
+        
+            const refAttribute = renderedConnectedComponent.node.ref;
+            expect(refAttribute).toBeNull();
         });
     });
 });

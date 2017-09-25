@@ -25,6 +25,8 @@ export function shallowEquals(obj1, obj2) {
 
 export default function connect(selectors, transformer, options = {}) {
     return function connector(View) {
+        const isViewAReactComponentClass = View.prototype instanceof Component;
+        
         class ConnectedComponent extends Component {
             constructor(...args) {
                 super(...args);
@@ -35,6 +37,8 @@ export default function connect(selectors, transformer, options = {}) {
                 this.unsubscribeFromState = null;
                 this.componentRef = null;
                 this.stateValues = this.getValuesForSelectors(selectors);
+                
+                this.setComponentRef = ref => this.componentRef = ref;
                 
                 this.bindDispatch = (event, payload) => {
                     if (payload === undefined) {
@@ -112,7 +116,7 @@ export default function connect(selectors, transformer, options = {}) {
             
             render() {
                 return <View
-                    ref={ref => this.componentRef = ref}
+                    ref={isViewAReactComponentClass ? this.setComponentRef : null}
                     {...this.props}
                     {...this.state}
                     dispatch={this.store.dispatch.bind(this.store)}/>;

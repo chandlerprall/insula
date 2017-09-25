@@ -1,6 +1,6 @@
 {
   "name": "react-insula",
-  "version": "2.1.3",
+  "version": "2.1.4",
   "main": "build/react-insula.js",
   "scripts": {
     "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
@@ -14,7 +14,7 @@
   "peerDependencies": {
     "insula": "^2.0.0",
     "prop-types": "^15.5.0",
-    "react": "^0.13.0 || ^0.14.0 || ^15.0.0"
+    "react": "^0.13.0 || ^0.14.0 || ^15.0.0 || ^16.0.0"
   },
   "author": "Chandler Prall <chandler.prall@gmail.com>",
   "license": "MIT",
@@ -221,6 +221,7 @@
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
+    "enzyme": "^2.9.1",
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.10.3",
     "jest": "^19.0.2",
