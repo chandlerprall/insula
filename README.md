@@ -194,14 +194,11 @@ export default connect(
     [[]],
     ([state]) => ({}),
     {
-        listeners: [
-            {
-                event: 'EVENT_TYPE',
-                listener: () => {
-                    this.reactToEvent();
-                }
-            }
-        ]
+        listeners: {
+            'EVENT_TYPE': () => {
+                 this.reactToEvent();
+             }
+         }
     }
 )(MyComponent);
 ```
