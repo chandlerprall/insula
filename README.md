@@ -50,7 +50,7 @@ const store = new Store({
 
 store.getState(); // {nested: {object: "value"}}
 store.getPartialState(['nested']); // {object: "value"}
-store.getPartialState(['nested', 'value']); // "value"
+store.getPartialState(['nested', 'object']); // "value"
 ```
 
 Note that accessing any non-existant part of state will return a `null` value.
