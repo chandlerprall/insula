@@ -1,5 +1,4 @@
 var NO_INDEX = -1;
-var ONE_BEFORE_LAST_INDEX = -1;
 var ONE_ITEM = 1;
 
 export function Node(selectorPath) {
