@@ -346,6 +346,36 @@ describe('Store', () => {
                 expect(listener.mock.calls).toEqual([]);
             });
         });
+
+        it('calls listeners when the subscriber is second-from-the-last part of the selector', () => {
+            const store = new Store({
+                foo: 'bar',
+                deep: {nested: 'object'}
+            });
+
+            const deepStateListener = jest.fn();
+            const deepNestedStateListener = jest.fn();
+
+            store.subscribeToState([['deep']], deepStateListener);
+            store.subscribeToState([['deep', 'nested']], deepNestedStateListener);
+
+            expect.assertions(2);
+            store.setPartialState(['deep'], {nested: 'new object'});
+
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    global.doDebug = true;
+                    store.setPartialState(['deep', 'nested'], 'third object');
+
+                    setTimeout(() => {
+                        try {expect(deepStateListener).toHaveBeenCalledTimes(2);} catch(e) {reject(e);}
+                        try {expect(deepNestedStateListener).toHaveBeenCalledTimes(2);} catch(e) {reject(e);}
+
+                        resolve();
+                    });
+                });
+            });
+        });
     });
     
     describe('Middleware', () => {
@@ -450,6 +480,65 @@ describe('Store', () => {
             ]);
             expect(listener.mock.calls).toEqual([
                 [PAYLOAD2, store.eventOptions],
+            ]);
+        });
+    });
+
+    describe('developer warnings', () => {
+        it('calls console.warn when a non-array selector is passed to getPartialState', () => {
+            const warn = console.warn = jest.fn();
+
+            const store = new Store();
+
+            try {store.getPartialState();} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Undefined]" pass to getPartialState');
+
+            warn.mockClear();
+
+            try {store.getPartialState(null);} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" pass to getPartialState');
+
+            warn.mockClear();
+
+            try {store.getPartialState(5);} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" pass to getPartialState');
+
+            warn.mockClear();
+
+            try {store.getPartialState({});} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Object]" pass to getPartialState');
+        });
+
+        it('calls console.warn when a non-array selector is passed to setPartialState', () => {
+            const warn = console.warn = jest.fn();
+
+            const store = new Store();
+
+            try {store.setPartialState(null, {});} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" pass to setPartialState');
+        });
+
+        it('calls console.warn when a non-array selector is passed to subscribeToState', () => {
+            const warn = console.warn = jest.fn();
+
+            const store = new Store();
+
+            try {store.subscribeToState(5, () => {});} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" pass to subscribeToState');
+
+            warn.mockClear();
+
+            try {store.subscribeToState([5, null], () => {});} catch(e) {}
+            expect(warn).toHaveBeenCalledTimes(2);
+            expect(warn.mock.calls).toEqual([
+                ['Insula: invalid selector "5" pass to subscribeToState, selector at index 0'],
+                ['Insula: invalid selector "[object Null]" pass to subscribeToState, selector at index 1']
             ]);
         });
     });

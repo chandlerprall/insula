@@ -1,12 +1,12 @@
 {
   "name": "insula",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "build/insula.js",
   "scripts": {
-    "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
-    "lint": "./node_modules/.bin/eslint .",
-    "test": "./node_modules/.bin/jest",
-    "test-watch": "./node_modules/.bin/jest --watchAll"
+    "build": "npm run lint && npm run test && rollup -c",
+    "lint": "eslint .",
+    "test": "jest",
+    "test-watch": "jest --watchAll"
   },
   "author": "Chandler Prall <chandler.prall@gmail.com>",
   "license": "MIT",
@@ -26,6 +26,9 @@
       "sourceType": "module"
     },
     "extends": "eslint:recommended",
+    "globals": {
+      "process": false
+    },
     "rules": {
       "array-bracket-spacing": [
         "warn",
@@ -131,7 +134,6 @@
       "no-lone-blocks": "error",
       "no-lonely-if": "warn",
       "no-loop-func": "error",
-      "no-magic-numbers": "warn",
       "no-mixed-operators": "error",
       "no-multi-spaces": "warn",
       "no-nested-ternary": "error",
