@@ -12,8 +12,8 @@ var HAS_PROCESS_ENV_NODE_ENV = typeof process !== 'undefined' && Object.prototyp
 var IS_PRODUCTION = HAS_PROCESS_ENV_NODE_ENV && process.env.NODE_ENV === 'production';
 
 function testSelectorValidity(selector, functionName) {
-    var selectorToString = Object.prototype.toString.call(selector);
-    if (selectorToString !== '[object Array]') {
+    if (!Array.isArray(selector)) {
+        var selectorToString = Object.prototype.toString.call(selector);
         try {selectorToString = selector.toString();} catch(e) {} // eslint-disable-line
         console.warn('Insula: invalid selector "' + (selectorToString) + '" pass to ' + functionName); // eslint-disable-line
     }
@@ -156,11 +156,12 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
     var processed = this.callMiddleware('subscribeToState', [selectors, listener]);
     var processedSelectors = processed[FIRST_INDEX];
     var processedListener = processed[SECOND_INDEX];
+    var i;
 
     if (!IS_PRODUCTION) {
         testSelectorValidity(processedSelectors, 'subscribeToState');
 
-        for (var i = 0; i < processedSelectors.length; i++) {
+        for (i = 0; i < processedSelectors.length; i++) {
             testSelectorValidity(processedSelectors[i], 'subscribeToState, selector at index ' + i);
         }
     }
