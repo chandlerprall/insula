@@ -82,24 +82,16 @@ function addSubscribersToArray(node, subscribers) {
 TreeSubscription.prototype.collectSubscribers = function collectSubscribers(selector) {
     var currentNode = this.root;
     var subscribers = [];
-    
+
     // walk tree, creating new nodes
     for (var i = 0; i < selector.length; i++) {
         var key = selector[i];
     
-        // if this is a parent node in the selector path add its selector
-        if (i !== selector.length + ONE_BEFORE_LAST_INDEX) {
-            addSubscribersToArray(currentNode, subscribers);
-        }
+        // this is a parent node in the selector path, add its subscribers
+        addSubscribersToArray(currentNode, subscribers);
         
         // if there is no matching node we can't continue looking for subscribers
         if (!currentNode.hasNode(key)) {
-            // if this is the last selector in the chain we want to still grab any of its subscribers
-            // even if we can't dig further into any children
-            if (i === selector.length + ONE_BEFORE_LAST_INDEX) {
-                addSubscribersToArray(currentNode, subscribers);
-            }
-            
             return subscribers;
         }
         

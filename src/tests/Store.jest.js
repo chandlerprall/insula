@@ -346,6 +346,36 @@ describe('Store', () => {
                 expect(listener.mock.calls).toEqual([]);
             });
         });
+
+        it('calls listeners when the subscriber is second-from-the-last part of the selector', () => {
+            const store = new Store({
+                foo: 'bar',
+                deep: {nested: 'object'}
+            });
+
+            const deepStateListener = jest.fn();
+            const deepNestedStateListener = jest.fn();
+
+            store.subscribeToState([['deep']], deepStateListener);
+            store.subscribeToState([['deep', 'nested']], deepNestedStateListener);
+
+            expect.assertions(2);
+            store.setPartialState(['deep'], {nested: 'new object'});
+
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    global.doDebug = true;
+                    store.setPartialState(['deep', 'nested'], 'third object');
+
+                    setTimeout(() => {
+                        try {expect(deepStateListener).toHaveBeenCalledTimes(2);} catch(e) {reject(e);}
+                        try {expect(deepNestedStateListener).toHaveBeenCalledTimes(2);} catch(e) {reject(e);}
+
+                        resolve();
+                    });
+                });
+            });
+        });
     });
     
     describe('Middleware', () => {
