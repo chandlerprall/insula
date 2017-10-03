@@ -8,6 +8,17 @@ var ONE_BEFORE_LAST_INDEX = -1;
 var FIRST_INDEX = 0;
 var SECOND_INDEX = 1;
 
+var HAS_PROCESS_ENV_NODE_ENV = typeof process !== 'undefined' && Object.prototype.hasOwnProperty(process, 'env') && Object.prototype.hasOwnProperty(process.env, 'NODE_ENV');
+var IS_PRODUCTION = HAS_PROCESS_ENV_NODE_ENV && process.env.NODE_ENV === 'production';
+
+function testSelectorValidity(selector, functionName) {
+    var selectorToString = Object.prototype.toString.call(selector);
+    if (selectorToString !== '[object Array]') {
+        try {selectorToString = selector.toString();} catch(e) {} // eslint-disable-line
+        console.warn('Insula: invalid selector "' + (selectorToString) + '" pass to ' + functionName); // eslint-disable-line
+    }
+}
+
 export default function Store(initialState, middleware) {
     this.listeners = {};
     this.subscriptions = new TreeSubscription(this);
@@ -40,6 +51,11 @@ Store.prototype.getState = function getState() {
 
 Store.prototype.getPartialState = function getPartialState(selector) {
     var processedSelector = this.callMiddleware('getPartialStateParseSelector', [selector])[FIRST_INDEX];
+
+    if (!IS_PRODUCTION) {
+        testSelectorValidity(processedSelector, 'getPartialState');
+    }
+
     return this.callMiddleware('getPartialStateReturn', [this.accessStateAtSelector(processedSelector)])[FIRST_INDEX];
 };
 
@@ -66,6 +82,11 @@ Store.prototype.setState = function setState(state) {
 Store.prototype.setPartialState = function setPartialState(selector, value) {
     var args = this.callMiddleware('setPartialState', [selector, value]);
     var processedSelector = args[FIRST_INDEX];
+
+    if (!IS_PRODUCTION) {
+        testSelectorValidity(processedSelector, 'setPartialState');
+    }
+
     var processedValue = args[SECOND_INDEX];
     this.setStateAtSelector(processedSelector, processedValue);
     this.callSubscribersUnderSelector(processedSelector);
@@ -135,6 +156,14 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
     var processed = this.callMiddleware('subscribeToState', [selectors, listener]);
     var processedSelectors = processed[FIRST_INDEX];
     var processedListener = processed[SECOND_INDEX];
+
+    if (!IS_PRODUCTION) {
+        testSelectorValidity(processedSelectors, 'subscribeToState');
+
+        for (var i = 0; i < processedSelectors.length; i++) {
+            testSelectorValidity(processedSelectors[i], 'subscribeToState, selector at index ' + i);
+        }
+    }
     
     var store = this;
     var stateChangeListener = function() {
@@ -148,7 +177,7 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
         processedListener(stateValues);
     };
     
-    for (var i = 0; i < processedSelectors.length; i++) {
+    for (i = 0; i < processedSelectors.length; i++) {
         this.subscriptions.subscribeSelector(processedSelectors[i], stateChangeListener);
     }
     
