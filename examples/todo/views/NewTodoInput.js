@@ -2,6 +2,7 @@ import React from 'react';
 import {func, string} from 'prop-types';
 import connect from '../../../src/Connect';
 import {ADD_TODO, UPDATE_NEXT_TODO} from '../TodoConstants';
+import {SELECT_NEXT_TODO} from '../TodoSelectors';
 
 function NewTodoInput({addTodo, nextTodo, updateTodo}) {
     return (
@@ -21,7 +22,7 @@ NewTodoInput.propTypes = {
 };
 
 export default connect(
-    [['nextTodo']],
+    [SELECT_NEXT_TODO],
     ([nextTodo], {bindDispatch}) => ({
         nextTodo,
         addTodo: bindDispatch(ADD_TODO, nextTodo),
@@ -30,10 +31,10 @@ export default connect(
     {
         listeners: {
             [UPDATE_NEXT_TODO]: (value, {setPartialState}) => {
-                setPartialState(['nextTodo'], value);
+                setPartialState(SELECT_NEXT_TODO, value);
             },
             [ADD_TODO]: (value, {setPartialState}) => {
-                setPartialState(['nextTodo'], '');
+                setPartialState(SELECT_NEXT_TODO, '');
             },
         },
     }
