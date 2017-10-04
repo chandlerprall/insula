@@ -224,6 +224,7 @@
     "enzyme": "^2.9.1",
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.10.3",
+    "insula": "^2.0.1",
     "jest": "^19.0.2",
     "prop-types": "^15.5.8",
     "react": "^15.5.4",
