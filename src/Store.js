@@ -11,7 +11,7 @@ export default class StoreComponent extends Component {
     }
 }
 
-StoreComponent.displayName = 'ReactInsultStore';
+StoreComponent.displayName = 'ReactInsulaStore';
 
 StoreComponent.childContextTypes = {insulaStore: object};
 StoreComponent.propTypes = {store: object.isRequired};
