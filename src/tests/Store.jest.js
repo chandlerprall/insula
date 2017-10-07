@@ -266,7 +266,7 @@ describe('Store', () => {
 
             store.subscribeToState([['two']], listener);
 
-            store.setPartialState(['two'], '-3');
+            store.setPartialState(['two'], '-2');
     
             return testAfterNextTick(() => {
                 expect(listener.mock.calls).toEqual([
