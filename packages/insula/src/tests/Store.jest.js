@@ -484,6 +484,91 @@ describe('Store', () => {
         });
     });
 
+    describe('Computed State', () => {
+        it('throws an error if two computed values with the same label are created', () => {
+            const store = new Store();
+            let error;
+
+            try {
+                store.addComputed('computedValue', [], () => {});
+                store.addComputed('computedValue', [], () => {});
+            } catch(e) {
+                error = e;
+            }
+
+            expect(error).toBeInstanceOf(Error);
+        });
+
+        it('immediately calls the state computation method', () => {
+            const store = new Store();
+            const computor = jest.fn();
+
+            store.addComputed('computedValue', [], computor);
+            expect(computor).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns a valid selector that can access the computed state', () => {
+            const store = new Store();
+            const computor = jest.fn(() => 5);
+
+            const selector = store.addComputed('computedValue', [], computor);
+
+            expect(store.getPartialState(selector)).toBe(5);
+        });
+
+        it('throws an error when a computed state selector is used to setPartialState', () => {
+            const store = new Store();
+
+            const selector = store.addComputed('computedValue', [], jest.fn());
+            let error;
+
+            try {
+                store.setPartialState(selector, null);
+            } catch(e) {
+                error = e;
+            }
+
+            expect(error).toBeInstanceOf(Error);
+            expect(error.toString()).toBe('Error: Insula: setPartialState called with computed state selector');
+        });
+
+        it('calls the computation method with selected parts of state', () => {
+            const store = new Store({a: 1, b: 2});
+            const computor = jest.fn(([a, b]) => {
+                expect(a).toBe(1);
+                expect(b).toBe(2);
+            });
+
+            store.addComputed('computedValue', [['a'], ['b']], computor);
+            expect(computor).toHaveBeenCalledTimes(1);
+        });
+
+        it('subscribes the computation method to the selected parts of state', () => {
+            const store = new Store({a: 1, b: 2});
+            const computor = jest.fn()
+                .mockImplementationOnce(([a, b]) => {
+                    expect(a).toBe(1);
+                    expect(b).toBe(2);
+                    return 3;
+                })
+                .mockImplementationOnce(([a, b]) => {
+                    expect(a).toBe(4);
+                    expect(b).toBe(5);
+                    return 9;
+                });
+
+            store.addComputed('computedValue', [['a'], ['b']], computor);
+            store.setPartialState(['a'], 4);
+            store.setPartialState(['b'], 5);
+
+            expect(computor).toHaveBeenCalledTimes(1);
+
+            return testAfterNextTick(() => {
+                expect(computor).toHaveBeenCalledTimes(2);
+            });
+        });
+    });
+
     describe('developer warnings', () => {
         it('calls console.warn when a non-array selector is passed to getPartialState', () => {
             const warn = console.warn = jest.fn();
@@ -492,25 +577,25 @@ describe('Store', () => {
 
             try {store.getPartialState();} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Undefined]" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Undefined]" passed to getPartialState');
 
             warn.mockClear();
 
             try {store.getPartialState(null);} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" passed to getPartialState');
 
             warn.mockClear();
 
             try {store.getPartialState(5);} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" passed to getPartialState');
 
             warn.mockClear();
 
             try {store.getPartialState({});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Object]" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Object]" passed to getPartialState');
         });
 
         it('calls console.warn when a non-array selector is passed to setPartialState', () => {
@@ -520,7 +605,7 @@ describe('Store', () => {
 
             try {store.setPartialState(null, {});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" pass to setPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" passed to setPartialState');
         });
 
         it('calls console.warn when a non-array selector is passed to subscribeToState', () => {
@@ -530,15 +615,15 @@ describe('Store', () => {
 
             try {store.subscribeToState(5, () => {});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" pass to subscribeToState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" passed to subscribeToState');
 
             warn.mockClear();
 
             try {store.subscribeToState([5, null], () => {});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(2);
             expect(warn.mock.calls).toEqual([
-                ['Insula: invalid selector "5" pass to subscribeToState, selector at index 0'],
-                ['Insula: invalid selector "[object Null]" pass to subscribeToState, selector at index 1']
+                ['Insula: invalid selector "5" passed to subscribeToState, selector at index 0'],
+                ['Insula: invalid selector "[object Null]" passed to subscribeToState, selector at index 1']
             ]);
         });
     });
