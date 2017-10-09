@@ -11,11 +11,13 @@ var SECOND_INDEX = 1;
 var HAS_PROCESS_ENV_NODE_ENV = typeof process !== 'undefined' && Object.prototype.hasOwnProperty(process, 'env') && Object.prototype.hasOwnProperty(process.env, 'NODE_ENV');
 var IS_PRODUCTION = HAS_PROCESS_ENV_NODE_ENV && process.env.NODE_ENV === 'production';
 
+var COMPUTED_FLAG = '__computed__';
+
 function testSelectorValidity(selector, functionName) {
     if (!Array.isArray(selector)) {
         var selectorToString = Object.prototype.toString.call(selector);
         try {selectorToString = selector.toString();} catch(e) {} // eslint-disable-line
-        console.warn('Insula: invalid selector "' + (selectorToString) + '" pass to ' + functionName); // eslint-disable-line
+        console.warn('Insula: invalid selector "' + (selectorToString) + '" passed to ' + functionName); // eslint-disable-line
     }
 }
 
@@ -27,7 +29,8 @@ export default function Store(initialState, middleware) {
     
     this.callSubscribers = this.callSubscribers.bind(this);
     this.nextSubscriberCalls = [];
-    
+
+    this.computedState = {};
     this.setState(initialState !== undefined ? initialState : {});
     
     // call any middleware constructors
@@ -61,13 +64,18 @@ Store.prototype.getPartialState = function getPartialState(selector) {
 
 Store.prototype.accessStateAtSelector = function accessStateAtSelector(selector) {
     var currentValue = this.getState();
-    
+
     for (var i = 0; i < selector.length; i++) {
         var key = selector[i];
-        if (currentValue.hasOwnProperty(key)) {
-            currentValue = currentValue[key];
+        if (key === COMPUTED_FLAG) {
+            // look in computed values instead of state object
+            currentValue = this.computedState;
         } else {
-            return null;
+            if (currentValue.hasOwnProperty(key)) {
+                currentValue = currentValue[key];
+            } else {
+                return null;
+            }
         }
     }
     
@@ -87,9 +95,18 @@ Store.prototype.setPartialState = function setPartialState(selector, value) {
         testSelectorValidity(processedSelector, 'setPartialState');
     }
 
+    if (processedSelector[0] === COMPUTED_FLAG) {
+        throw new Error('Insula: setPartialState called with computed state selector');
+    }
+
     var processedValue = args[SECOND_INDEX];
     this.setStateAtSelector(processedSelector, processedValue);
     this.callSubscribersUnderSelector(processedSelector);
+};
+
+Store.prototype.setComputedState = function setComputedState(computedLabel, selector, value) {
+    this.computedState[computedLabel] = value;
+    this.callSubscribersUnderSelector(selector);
 };
 
 Store.prototype.setStateAtSelector = function setStateAtSelector(selector, value) {
@@ -209,4 +226,31 @@ Store.prototype.callSubscribers = function callSubscribers() {
         this.nextSubscriberCalls[i]();
     }
     this.nextSubscriberCalls.length = 0;
+};
+
+Store.prototype.addComputed = function addComputed(computedLabel, selectors, computator) {
+    if (this.computedState.hasOwnProperty(computedLabel)) {
+        throw new Error('Insula: tried creating computed value called "' + computedLabel + '" but one already exists');
+    }
+
+    var stateValues = [];
+    for (var i = 0; i < selectors.length; i++) {
+        stateValues.push(this.getPartialState(selectors[i]));
+    }
+
+    var computedStateSelector = [COMPUTED_FLAG, computedLabel];
+
+    var computedValue = computator(stateValues);
+    this.setComputedState(computedLabel, computedStateSelector, computedValue);
+
+    var _store = this;
+    this.subscribeToState(
+        selectors,
+        function updatedComputedState(stateValues) {
+            computedValue = computator(stateValues);
+            _store.setComputedState(computedLabel, computedStateSelector, computedValue);
+        }
+    );
+
+    return computedStateSelector;
 };
