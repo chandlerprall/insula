@@ -96,7 +96,7 @@ Store.prototype.setPartialState = function setPartialState(selector, value) {
     }
 
     if (processedSelector[0] === COMPUTED_FLAG) {
-        throw new Error('Insula: setPartialState called with computed state selector');
+        throw new Error('Insula: setPartialState called with selector for computed state "' + processedSelector[1] + '" and value "' + value + '"');
     }
 
     var processedValue = args[SECOND_INDEX];
@@ -208,6 +208,7 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
 
 Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSelector(selector) {
     var subscribers = this.subscriptions.collectSubscribers(selector);
+    if (subscribers.length === 0) return;
     
     if (this.nextSubscriberCalls.length === ZERO_LENGTH) {
         nextTick(this.callSubscribers);

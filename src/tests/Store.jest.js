@@ -523,13 +523,13 @@ describe('Store', () => {
             let error;
 
             try {
-                store.setPartialState(selector, null);
+                store.setPartialState(selector, 5);
             } catch(e) {
                 error = e;
             }
 
             expect(error).toBeInstanceOf(Error);
-            expect(error.toString()).toBe('Error: Insula: setPartialState called with computed state selector');
+            expect(error.toString()).toBe('Error: Insula: setPartialState called with selector for computed state "computedValue" and value "5"');
         });
 
         it('calls the computation method with selected parts of state', () => {
@@ -566,6 +566,99 @@ describe('Store', () => {
             return testAfterNextTick(() => {
                 expect(computor).toHaveBeenCalledTimes(2);
             });
+        });
+
+        it('subscribes computed state listeners to other computed states', () => {
+            const store = new Store({a: 1, b: 1});
+
+            const incrementComputation = jest.fn(([x]) => x + 1);
+            const incrementSelector = store.addComputed('increment', [['a']], incrementComputation);
+
+            const decrementComputation = jest.fn(([x, y]) => x - y);
+            const decrementSelector = store.addComputed('decrement', [['b'], incrementSelector], decrementComputation);
+            expect(store.getPartialState(decrementSelector)).toBe(-1); // b - (a + 1)
+
+            incrementComputation.mockClear();
+            decrementComputation.mockClear();
+
+            store.setPartialState(['a'], 3);
+            store.setPartialState(['b'], 2);
+
+            return testAfterNextTick(() => {
+                expect(store.getPartialState(decrementSelector)).toBe(-2); // b - (a + 1)
+                expect(incrementComputation).toHaveBeenCalledTimes(1);
+
+                expect(incrementComputation).toHaveBeenCalledWith([3]);
+
+                expect(decrementComputation).toHaveBeenCalledTimes(1);
+                expect(decrementComputation).toHaveBeenCalledWith([2, 4]);
+            });
+        });
+
+        it('optimizes calls to computation methods', () => {
+            const store = new Store({
+                inputValue: 5,
+                computationArgs: {
+                    increment: 2,
+                    decrement: 3
+                }
+            });
+
+            const INPUT_VALUE_SELECTOR = ['inputValue'];
+            const INCREMENT_ARGS_SELECTOR = ['computationArgs', 'increment'];
+            const DECREMENT_ARGS_SELECTOR = ['computationArgs', 'decrement'];
+
+            const incrementComputation = jest.fn(([inputValue, incrementArg]) => inputValue + incrementArg);
+            const incrementSelector = store.addComputed('increment', [INPUT_VALUE_SELECTOR, INCREMENT_ARGS_SELECTOR], incrementComputation);
+
+            const decrementComputation = jest.fn(([inputValue, decrementArg]) => inputValue - decrementArg);
+            const decrementSelector = store.addComputed('decrement', [INPUT_VALUE_SELECTOR, DECREMENT_ARGS_SELECTOR], decrementComputation);
+
+            const combinationComputation = jest.fn(([x, y]) => x + y);
+            const combinationSelector = store.addComputed('combination', [incrementSelector, decrementSelector], combinationComputation);
+
+            // sanity checks
+            expect(store.getPartialState(incrementSelector)).toBe(7);
+            expect(store.getPartialState(decrementSelector)).toBe(2);
+            expect(store.getPartialState(combinationSelector)).toBe(9);
+
+            expect(incrementComputation).toHaveBeenCalledTimes(1);
+            expect(decrementComputation).toHaveBeenCalledTimes(1);
+            expect(combinationComputation).toHaveBeenCalledTimes(1);
+
+            incrementComputation.mockClear();
+            decrementComputation.mockClear();
+            combinationComputation.mockClear();
+            store.setPartialState(INPUT_VALUE_SELECTOR, 3);
+            store.setPartialState(INCREMENT_ARGS_SELECTOR, 1);
+            store.setPartialState(DECREMENT_ARGS_SELECTOR, 2);
+
+            return testAfterNextTick(() => {
+                expect(incrementComputation).toHaveBeenCalledTimes(1);
+                expect(store.getPartialState(incrementSelector)).toBe(4);
+
+                expect(decrementComputation).toHaveBeenCalledTimes(1);
+                expect(store.getPartialState(decrementSelector)).toBe(1);
+
+                expect(combinationComputation).toHaveBeenCalledTimes(1);
+                expect(store.getPartialState(combinationSelector)).toBe(5);
+
+                incrementComputation.mockClear();
+                decrementComputation.mockClear();
+                combinationComputation.mockClear();
+                store.setPartialState(DECREMENT_ARGS_SELECTOR, 4);
+                store.setPartialState(INCREMENT_ARGS_SELECTOR, 5);
+                store.setPartialState(INPUT_VALUE_SELECTOR, 6);
+            }).then(() => testAfterNextTick(() => {
+                    expect(incrementComputation).toHaveBeenCalledTimes(1);
+                    expect(store.getPartialState(incrementSelector)).toBe(11);
+
+                    expect(decrementComputation).toHaveBeenCalledTimes(1);
+                    expect(store.getPartialState(decrementSelector)).toBe(2);
+
+                    expect(combinationComputation).toHaveBeenCalledTimes(1);
+                    expect(store.getPartialState(combinationSelector)).toBe(13);
+            }));
         });
     });
 
