@@ -156,8 +156,9 @@ const store = new Store({
 });
 
 const formattedNameSelector = store.addComputed(
-    [['user']],
-    ([{title, firstName, lastName, suffix}]) => `${title} ${firstName} ${lastName} ${suffix}`
+    'formattedName', // developer-friendly name for this value, used only for debugging
+    [['user']], // selector(s) the computed value uses
+    ([{title, firstName, lastName, suffix}]) => `${title} ${firstName} ${lastName} ${suffix}` // transform method that returns the computed value
 );
 
 store.subscribeToState(
