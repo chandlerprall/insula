@@ -6,6 +6,7 @@ Insula is an event-driven state management library for JavaScript applications.
 	* [Updating store values](#updating-store-values)
 	* [Subscribing to state changes](#subscribing-to-changes)
 	* [Unsubscribing](#unsubscribing)
+	* [Computed Values](#computed-values)
 * [Event system](#event-system)
 * [Selectors](#selectors)
 * [Performance](#performance)
@@ -138,6 +139,31 @@ const unsubscribe = store.subscribeToState([['foo']], () => {});
 
 // remove the subscription
 unsubscribe();
+```
+
+### Computed Values
+
+Many applications need to store source data and transform it for other parts of the application. This transformation can be costly and a common way to solve this is to cache the transformed data as part of the state itself. Insula provides a way to create _computed values_ and seemlessly re-use them across the application via the generated [selector](#selectors). For example, you could store a raw user object and compute a string concatenation of their name.
+
+```javascript
+const store = new Store({
+    user: {
+        title: 'Doctor',
+        firstName: 'Bobbiton',
+        lastName: 'Wobbiton',
+        suffix: 'Jr.'
+    }
+});
+
+const formattedNameSelector = store.addComputed(
+    [['user']],
+    ([{title, firstName, lastName, suffix}]) => `${title} ${firstName} ${lastName} ${suffix}`
+);
+
+store.subscribeToState(
+    [formattedNameSelector],
+    ([formattedName]) => console.log(formattedName)
+);
 ```
 
 ## Event system
