@@ -70,12 +70,10 @@ Store.prototype.accessStateAtSelector = function accessStateAtSelector(selector)
         if (key === COMPUTED_FLAG) {
             // look in computed values instead of state object
             currentValue = this.computedState;
+        } else if (currentValue.hasOwnProperty(key)) {
+            currentValue = currentValue[key];
         } else {
-            if (currentValue.hasOwnProperty(key)) {
-                currentValue = currentValue[key];
-            } else {
-                return null;
-            }
+            return null;
         }
     }
     
@@ -208,7 +206,9 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
 
 Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSelector(selector) {
     var subscribers = this.subscriptions.collectSubscribers(selector);
-    if (subscribers.length === 0) return;
+    if (subscribers.length === 0) {
+        return;
+    }
     
     if (this.nextSubscriberCalls.length === ZERO_LENGTH) {
         nextTick(this.callSubscribers);
