@@ -143,7 +143,7 @@ unsubscribe();
 
 ### Computed Values
 
-Many applications need to store source data and transform it for other parts of the application. This transformation can be costly and a common way to solve this is to cache the transformed data as part of the state itself. Insula provides a way to create _computed values_ and seemlessly re-use them across the application via the generated [selector](#selectors). For example, you could store a raw user object and compute a string concatenation of their name.
+Many applications need to store source data and transform it for other parts of the application. This transformation can be costly and a common way to solve this is to cache the transformed data as part of the state itself. Insula provides a way to create _computed values_ and seemlessly re-use them across the application via the generated [selector](#selectors). Computed values can even depend on other computed values! For example, you could store a raw user object and compute a string concatenation of their name.
 
 ```javascript
 const store = new Store({
@@ -155,10 +155,16 @@ const store = new Store({
     }
 });
 
+const fullNameSelector = store.addComputed(
+    'fullName', // developer-friendly name for this value, used only for debugging
+    [['user', 'firstName'], ['user', 'lastName']], // selector(s) the computed value uses
+    ([firstName, lastName]) => `${firstName} ${lastName}` // transform method that returns the computed value
+);
+
 const formattedNameSelector = store.addComputed(
     'formattedName', // developer-friendly name for this value, used only for debugging
-    [['user']], // selector(s) the computed value uses
-    ([{title, firstName, lastName, suffix}]) => `${title} ${firstName} ${lastName} ${suffix}` // transform method that returns the computed value
+    [['user', 'title'], ['user', 'suffix'], fullNameSelector], // selector(s) the computed value uses
+    ([title, suffix, fullName]) => `${title} ${fullName} ${suffix}` // transform method that returns the computed value
 );
 
 store.subscribeToState(
