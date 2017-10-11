@@ -3,3 +3,4 @@ node_modules
 coverage
 .jestcache
 build
+npm-debug.log

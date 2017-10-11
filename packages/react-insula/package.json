@@ -1,6 +1,6 @@
 {
   "name": "react-insula",
-  "version": "2.1.6",
+  "version": "3.0.0-alpha",
   "main": "build/react-insula.js",
   "scripts": {
     "build": "npm run lint && npm run test && ./node_modules/.bin/rollup -c",
@@ -12,7 +12,7 @@
     "build-example-todo": "./node_modules/.bin/rollup -c examples/rollup.config.js --input examples/todo/Todo.js --output examples/build/todo.js"
   },
   "peerDependencies": {
-    "insula": "^2.0.0",
+    "insula": "^3.0.0",
     "prop-types": "^15.5.0",
     "react": "^0.13.0 || ^0.14.0 || ^15.0.0 || ^16.0.0"
   },
@@ -224,7 +224,7 @@
     "enzyme": "^2.9.1",
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^6.10.3",
-    "insula": "^2.0.1",
+    "insula": "^3.0.0-alpha",
     "jest": "^19.0.2",
     "prop-types": "^15.5.8",
     "react": "^15.5.4",
