@@ -1,5 +1,8 @@
 Insula is an event-driven state management library for JavaScript applications.
 
+[![build status](https://circleci.com/gh/chandlerprall/insula.svg?&style=shield)](https://circleci.com/gh/chandlerprall/insula/tree/master)
+[![npm version](https://img.shields.io/npm/v/insula.svg)](https://www.npmjs.com/package/insula)
+
 * [Installation](#installation)
 * [Creating a state store](#creating-a-state-store)
 	* [Accessing store values](#accessing-store-values)
