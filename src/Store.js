@@ -8,7 +8,7 @@ var ONE_BEFORE_LAST_INDEX = -1;
 var FIRST_INDEX = 0;
 var SECOND_INDEX = 1;
 
-var HAS_PROCESS_ENV_NODE_ENV = typeof process !== 'undefined' && Object.prototype.hasOwnProperty(process, 'env') && Object.prototype.hasOwnProperty(process.env, 'NODE_ENV');
+var HAS_PROCESS_ENV_NODE_ENV = typeof process !== 'undefined' && Object.prototype.hasOwnProperty.call(process, 'env') && Object.prototype.hasOwnProperty.call(process.env, 'NODE_ENV');
 var IS_PRODUCTION = HAS_PROCESS_ENV_NODE_ENV && process.env.NODE_ENV === 'production';
 
 function testSelectorValidity(selector, functionName) {
