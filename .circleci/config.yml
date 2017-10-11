@@ -18,7 +18,10 @@ jobs:
       - restore_cache:
           key: deps-{{ checksum "package.json" }}-{{ checksum "packages/insula/package.json" }}-{{ checksum "packages/react-insula/package.json" }}
 
+      # install lerna
       - run: npm install
+
+      # bootstrap the project
       - run: ./node_modules/.bin/lerna bootstrap
 
       - save_cache:
@@ -28,7 +31,10 @@ jobs:
             - packages/react-insula/node_modules
           key: deps-{{ checksum "package.json" }}-{{ checksum "packages/insula/package.json" }}-{{ checksum "packages/react-insula/package.json" }}
 
-      # run tests!
+      # build insula so lerna deps can reference it
+      - run: npm run build --prefix packages/insula
+
+      # lint and test all projects
       - run: ./node_modules/.bin/lerna run lint && ./node_modules/.bin/lerna run test
 
 
