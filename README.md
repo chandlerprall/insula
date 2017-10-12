@@ -156,13 +156,13 @@ const store = new Store({
 });
 
 const fullNameSelector = store.addComputed(
-    'fullName', // developer-friendly name for this value, used only for debugging
+    'fullName', // developer-friendly name for this value, used for debugging [must be unique]
     [['user', 'firstName'], ['user', 'lastName']], // selector(s) the computed value uses
     ([firstName, lastName]) => `${firstName} ${lastName}` // transform method that returns the computed value
 );
 
 const formattedNameSelector = store.addComputed(
-    'formattedName', // developer-friendly name for this value, used only for debugging
+    'formattedName', // developer-friendly name for this value, used for debugging [must be unique]
     [['user', 'title'], ['user', 'suffix'], fullNameSelector], // selector(s) the computed value uses
     ([title, suffix, fullName]) => `${title} ${fullName} ${suffix}` // transform method that returns the computed value
 );
