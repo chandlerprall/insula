@@ -484,6 +484,184 @@ describe('Store', () => {
         });
     });
 
+    describe('Computed State', () => {
+        it('throws an error if two computed values with the same label are created', () => {
+            const store = new Store();
+            let error;
+
+            try {
+                store.addComputed('computedValue', [], () => {});
+                store.addComputed('computedValue', [], () => {});
+            } catch(e) {
+                error = e;
+            }
+
+            expect(error).toBeInstanceOf(Error);
+        });
+
+        it('immediately calls the state computation method', () => {
+            const store = new Store();
+            const computor = jest.fn();
+
+            store.addComputed('computedValue', [], computor);
+            expect(computor).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns a valid selector that can access the computed state', () => {
+            const store = new Store();
+            const computor = jest.fn(() => 5);
+
+            const selector = store.addComputed('computedValue', [], computor);
+
+            expect(store.getPartialState(selector)).toBe(5);
+        });
+
+        it('throws an error when a computed state selector is used to setPartialState', () => {
+            const store = new Store();
+
+            const selector = store.addComputed('computedValue', [], jest.fn());
+            let error;
+
+            try {
+                store.setPartialState(selector, 5);
+            } catch(e) {
+                error = e;
+            }
+
+            expect(error).toBeInstanceOf(Error);
+            expect(error.toString()).toBe('Error: Insula: setPartialState called with selector for computed state "computedValue" and value "5"');
+        });
+
+        it('calls the computation method with selected parts of state', () => {
+            const store = new Store({a: 1, b: 2});
+            const computor = jest.fn(([a, b]) => {
+                expect(a).toBe(1);
+                expect(b).toBe(2);
+            });
+
+            store.addComputed('computedValue', [['a'], ['b']], computor);
+            expect(computor).toHaveBeenCalledTimes(1);
+        });
+
+        it('subscribes the computation method to the selected parts of state', () => {
+            const store = new Store({a: 1, b: 2});
+            const computor = jest.fn()
+                .mockImplementationOnce(([a, b]) => {
+                    expect(a).toBe(1);
+                    expect(b).toBe(2);
+                    return 3;
+                })
+                .mockImplementationOnce(([a, b]) => {
+                    expect(a).toBe(4);
+                    expect(b).toBe(5);
+                    return 9;
+                });
+
+            store.addComputed('computedValue', [['a'], ['b']], computor);
+            store.setPartialState(['a'], 4);
+            store.setPartialState(['b'], 5);
+
+            expect(computor).toHaveBeenCalledTimes(1);
+
+            return testAfterNextTick(() => {
+                expect(computor).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        it('subscribes computed state listeners to other computed states', () => {
+            const store = new Store({a: 1, b: 1});
+
+            const incrementComputation = jest.fn(([x]) => x + 1);
+            const incrementSelector = store.addComputed('increment', [['a']], incrementComputation);
+
+            const decrementComputation = jest.fn(([x, y]) => x - y);
+            const decrementSelector = store.addComputed('decrement', [['b'], incrementSelector], decrementComputation);
+            expect(store.getPartialState(decrementSelector)).toBe(-1); // b - (a + 1)
+
+            incrementComputation.mockClear();
+            decrementComputation.mockClear();
+
+            store.setPartialState(['a'], 3);
+            store.setPartialState(['b'], 2);
+
+            return testAfterNextTick(() => {
+                expect(store.getPartialState(decrementSelector)).toBe(-2); // b - (a + 1)
+                expect(incrementComputation).toHaveBeenCalledTimes(1);
+
+                expect(incrementComputation).toHaveBeenCalledWith([3]);
+
+                expect(decrementComputation).toHaveBeenCalledTimes(1);
+                expect(decrementComputation).toHaveBeenCalledWith([2, 4]);
+            });
+        });
+
+        it('optimizes calls to computation methods', () => {
+            const store = new Store({
+                inputValue: 5,
+                computationArgs: {
+                    increment: 2,
+                    decrement: 3
+                }
+            });
+
+            const INPUT_VALUE_SELECTOR = ['inputValue'];
+            const INCREMENT_ARGS_SELECTOR = ['computationArgs', 'increment'];
+            const DECREMENT_ARGS_SELECTOR = ['computationArgs', 'decrement'];
+
+            const incrementComputation = jest.fn(([inputValue, incrementArg]) => inputValue + incrementArg);
+            const incrementSelector = store.addComputed('increment', [INPUT_VALUE_SELECTOR, INCREMENT_ARGS_SELECTOR], incrementComputation);
+
+            const decrementComputation = jest.fn(([inputValue, decrementArg]) => inputValue - decrementArg);
+            const decrementSelector = store.addComputed('decrement', [INPUT_VALUE_SELECTOR, DECREMENT_ARGS_SELECTOR], decrementComputation);
+
+            const combinationComputation = jest.fn(([x, y]) => x + y);
+            const combinationSelector = store.addComputed('combination', [incrementSelector, decrementSelector], combinationComputation);
+
+            // sanity checks
+            expect(store.getPartialState(incrementSelector)).toBe(7);
+            expect(store.getPartialState(decrementSelector)).toBe(2);
+            expect(store.getPartialState(combinationSelector)).toBe(9);
+
+            expect(incrementComputation).toHaveBeenCalledTimes(1);
+            expect(decrementComputation).toHaveBeenCalledTimes(1);
+            expect(combinationComputation).toHaveBeenCalledTimes(1);
+
+            incrementComputation.mockClear();
+            decrementComputation.mockClear();
+            combinationComputation.mockClear();
+            store.setPartialState(INPUT_VALUE_SELECTOR, 3);
+            store.setPartialState(INCREMENT_ARGS_SELECTOR, 1);
+            store.setPartialState(DECREMENT_ARGS_SELECTOR, 2);
+
+            return testAfterNextTick(() => {
+                expect(incrementComputation).toHaveBeenCalledTimes(1);
+                expect(store.getPartialState(incrementSelector)).toBe(4);
+
+                expect(decrementComputation).toHaveBeenCalledTimes(1);
+                expect(store.getPartialState(decrementSelector)).toBe(1);
+
+                expect(combinationComputation).toHaveBeenCalledTimes(1);
+                expect(store.getPartialState(combinationSelector)).toBe(5);
+
+                incrementComputation.mockClear();
+                decrementComputation.mockClear();
+                combinationComputation.mockClear();
+                store.setPartialState(DECREMENT_ARGS_SELECTOR, 4);
+                store.setPartialState(INCREMENT_ARGS_SELECTOR, 5);
+                store.setPartialState(INPUT_VALUE_SELECTOR, 6);
+            }).then(() => testAfterNextTick(() => {
+                    expect(incrementComputation).toHaveBeenCalledTimes(1);
+                    expect(store.getPartialState(incrementSelector)).toBe(11);
+
+                    expect(decrementComputation).toHaveBeenCalledTimes(1);
+                    expect(store.getPartialState(decrementSelector)).toBe(2);
+
+                    expect(combinationComputation).toHaveBeenCalledTimes(1);
+                    expect(store.getPartialState(combinationSelector)).toBe(13);
+            }));
+        });
+    });
+
     describe('developer warnings', () => {
         it('calls console.warn when a non-array selector is passed to getPartialState', () => {
             const warn = console.warn = jest.fn();
@@ -492,25 +670,25 @@ describe('Store', () => {
 
             try {store.getPartialState();} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Undefined]" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Undefined]" passed to getPartialState');
 
             warn.mockClear();
 
             try {store.getPartialState(null);} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" passed to getPartialState');
 
             warn.mockClear();
 
             try {store.getPartialState(5);} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" passed to getPartialState');
 
             warn.mockClear();
 
             try {store.getPartialState({});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Object]" pass to getPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Object]" passed to getPartialState');
         });
 
         it('calls console.warn when a non-array selector is passed to setPartialState', () => {
@@ -520,7 +698,7 @@ describe('Store', () => {
 
             try {store.setPartialState(null, {});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" pass to setPartialState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "[object Null]" passed to setPartialState');
         });
 
         it('calls console.warn when a non-array selector is passed to subscribeToState', () => {
@@ -530,15 +708,15 @@ describe('Store', () => {
 
             try {store.subscribeToState(5, () => {});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(1);
-            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" pass to subscribeToState');
+            expect(warn).toHaveBeenCalledWith('Insula: invalid selector "5" passed to subscribeToState');
 
             warn.mockClear();
 
             try {store.subscribeToState([5, null], () => {});} catch(e) {}
             expect(warn).toHaveBeenCalledTimes(2);
             expect(warn.mock.calls).toEqual([
-                ['Insula: invalid selector "5" pass to subscribeToState, selector at index 0'],
-                ['Insula: invalid selector "[object Null]" pass to subscribeToState, selector at index 1']
+                ['Insula: invalid selector "5" passed to subscribeToState, selector at index 0'],
+                ['Insula: invalid selector "[object Null]" passed to subscribeToState, selector at index 1']
             ]);
         });
     });
