@@ -239,7 +239,7 @@ Store.prototype.callSubscribers = function callSubscribers() {
     this.nextSubscriberCalls.sort(subscriberSorter);
     while (this.nextSubscriberCalls.length > 0) {
         var subscriber = this.nextSubscriberCalls.shift(1); // pull the next subscriber from front of the array
-        subscriber.call(this);
+        subscriber();
     }
 };
 
