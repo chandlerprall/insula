@@ -237,10 +237,10 @@ function subscriberSorter(a, b) {
 }
 Store.prototype.callSubscribers = function callSubscribers() {
     this.nextSubscriberCalls.sort(subscriberSorter);
-    for (var i = 0; i < this.nextSubscriberCalls.length; i++) {
-        this.nextSubscriberCalls[i]();
+    while (this.nextSubscriberCalls.length > 0) {
+        var subscriber = this.nextSubscriberCalls.shift(1); // pull the next subscriber from front of the array
+        subscriber.call(this);
     }
-    this.nextSubscriberCalls.length = 0;
 };
 
 Store.prototype.addComputed = function addComputed(computedLabel, selectors, computator) {
