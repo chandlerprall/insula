@@ -1,0 +1,4 @@
+export const ADD_TODO = 'ADD_TODO';
+export const COMPLETE_ITEM = 'COMPLETE_ITEM';
+export const UNCOMPLETE_ITEM = 'UNCOMPLETE_ITEM';
+export const UPDATE_NEXT_TODO = 'UPDATE_NEXT_TODO';
