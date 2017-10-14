@@ -1,7 +1,11 @@
-/* eslint complexity: "off" */
-
+/* eslint curly: "off" */
 function isPrimitive(value) {
     return Object(value) !== value;
+}
+
+function isArrayOrObject(x) {
+    if (isPrimitive(x)) return false;
+    return x.constructor === Object || x.constructor === Array;
 }
 
 function shallowObj(obj1, obj2) {
@@ -27,13 +31,11 @@ function shallowObj(obj1, obj2) {
 }
 
 export function shallowCompare(a, b) {
-    if (typeof a !== typeof b || Array.isArray(a) !== Array.isArray(b)) {
-        return false;
+    if (a === b) {
+        return true;
+    } else if (isArrayOrObject(a) && isArrayOrObject(b)) {
+        if (a.constructor !== b.constructor) return false;
+        return shallowObj(a, b);
     }
-
-    if (typeof a === 'function' || isPrimitive(a) || isPrimitive(b)) {
-        return a === b;
-    }
-
-    return shallowObj(a, b);
+    return false;
 }
