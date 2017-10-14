@@ -6,7 +6,7 @@ const testShallowCompare = (value, against, result) => {
 };
 
 describe('ShallowCompare', () => {
-    describe('Numbers', () => {
+    describe('Number', () => {
         const numberTests = [
             {value: 0, against: 0, result: true},
             {value: 0, against: 1, result: false},
@@ -103,7 +103,7 @@ describe('ShallowCompare', () => {
         }
     });
 
-    describe('Strings', () => {
+    describe('String', () => {
         const stringTests = [
             {value: '', against: '', result: true},
             {value: '', against: 'abc', result: false},
@@ -126,7 +126,7 @@ describe('ShallowCompare', () => {
         }
     });
 
-    describe('Functions', () => {
+    describe('Function', () => {
         const refFunc = () => {};
         const funcTests = [
             {value: refFunc, against: refFunc, result: true},
@@ -151,7 +151,7 @@ describe('ShallowCompare', () => {
         }
     });
 
-    describe('Arrays', () => {
+    describe('Array', () => {
         const refArray = [];
         const refObj = {};
         const arrayTests = [
@@ -182,7 +182,7 @@ describe('ShallowCompare', () => {
         }
     });
 
-    describe('Objects', () => {
+    describe('Object', () => {
         const refObj = {};
         const objTests = [
             {value: refObj, against: refObj, result: true},
@@ -207,6 +207,66 @@ describe('ShallowCompare', () => {
             const value = obj.value;
             const against = obj.against;
             const result = obj.result;
+            testShallowCompare(value, against, result);
+        }
+    });
+
+    describe('Map', () => {
+        const refMap1 = new Map();
+        const refMap2 = new Map().set('test', 'this is a test');
+        const refMap3 = new Map().set('test', 'this is a test');
+        const refMap4 = new Map().set('other test', 'this is another test');
+        const mapTests = [
+            {value: refMap1, against: refMap1, result: true},
+            {value: new Map(), against: new Map(), result: false},
+            {value: new Map(), against: refMap1, result: false},
+            {value: refMap1, against: refMap2, result: false},
+            {value: refMap2, against: refMap3, result: false},
+            {value: refMap1, against: refMap2, result: false},
+            {value: refMap1, against: undefined, result: false},
+            {value: refMap1, against: false, result: false},
+            {value: refMap1, against: true, result: false},
+            {value: refMap1, against: null, result: false},
+            {value: refMap1, against: '', result: false},
+            {value: refMap1, against: 0, result: false},
+            {value: refMap1, against: () => {}, result: false},
+            {value: refMap1, against: [], result: false},
+        ];
+
+        for (let i = 0; i < mapTests.length; i++) {
+            const map = mapTests[i];
+            const value = map.value;
+            const against = map.against;
+            const result = map.result;
+            testShallowCompare(value, against, result);
+        }
+    });
+
+    describe('Set', () => {
+        const refSet1 = new Set([1, 2, 3]);
+        const refSet2 = new Set([2, 3]);
+        const setTests = [
+            {value: refSet1, against: refSet1, result: true},
+            {value: new Set(), against: new Set(), result: false},
+            {value: refSet1, against: refSet2, result: false},
+            {value: new Set(), against: refSet1, result: false},
+            {value: new Set([1, 2, 3]), against: new Set([1, 2, 3]), result: false},
+            {value: refSet1, against: refSet2, result: false},
+            {value: refSet1, against: undefined, result: false},
+            {value: refSet1, against: false, result: false},
+            {value: refSet1, against: true, result: false},
+            {value: refSet1, against: null, result: false},
+            {value: refSet1, against: '', result: false},
+            {value: refSet1, against: 0, result: false},
+            {value: refSet1, against: () => {}, result: false},
+            {value: refSet1, against: [], result: false},
+        ];
+
+        for (let i = 0; i < setTests.length; i++) {
+            const set = setTests[i];
+            const value = set.value;
+            const against = set.against;
+            const result = set.result;
             testShallowCompare(value, against, result);
         }
     });
