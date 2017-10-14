@@ -282,6 +282,5 @@ Store.prototype.findComputedStateDependencyDepth = function findComputedStateDep
             dependencyDepths.push(this.computedStateDepths[selectors[i][1]]);
         }
     }
-    var computedStateDependencyDepth = Math.max.apply(null, dependencyDepths);
-    return computedStateDependencyDepth;
+    return Math.max.apply(null, dependencyDepths);
 };
