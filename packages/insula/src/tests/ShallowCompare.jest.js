@@ -218,10 +218,10 @@ describe('ShallowCompare', () => {
         const refMap4 = new Map().set('other test', 'this is another test');
         const mapTests = [
             {value: refMap1, against: refMap1, result: true},
-            {value: new Map(), against: new Map(), result: false},
-            {value: new Map(), against: refMap1, result: false},
+            {value: new Map(), against: new Map(), result: true},
+            {value: new Map(), against: refMap1, result: true},
+            {value: refMap2, against: refMap3, result: true},
             {value: refMap1, against: refMap2, result: false},
-            {value: refMap2, against: refMap3, result: false},
             {value: refMap1, against: refMap2, result: false},
             {value: refMap1, against: undefined, result: false},
             {value: refMap1, against: false, result: false},
@@ -243,15 +243,18 @@ describe('ShallowCompare', () => {
     });
 
     describe('Set', () => {
-        const refSet1 = new Set([1, 2, 3]);
-        const refSet2 = new Set([2, 3]);
+        const refSet1 = new Set();
+        const refSet2 = new Set([1, 2, 3]);
+        const refSet3 = new Set([1, 2, 3]);
+        const refSet4 = new Set([2, 3]);
         const setTests = [
             {value: refSet1, against: refSet1, result: true},
-            {value: new Set(), against: new Set(), result: false},
+            {value: new Set(), against: new Set(), result: true},
+            {value: new Set([1, 2, 3]), against: new Set([1, 2, 3]), result: true},
+            {value: new Set(), against: refSet1, result: true},
+            {value: refSet2, against: refSet3, result: true},
             {value: refSet1, against: refSet2, result: false},
-            {value: new Set(), against: refSet1, result: false},
-            {value: new Set([1, 2, 3]), against: new Set([1, 2, 3]), result: false},
-            {value: refSet1, against: refSet2, result: false},
+            {value: refSet3, against: refSet4, result: false},
             {value: refSet1, against: undefined, result: false},
             {value: refSet1, against: false, result: false},
             {value: refSet1, against: true, result: false},
