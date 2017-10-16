@@ -31,6 +31,7 @@ export default function Store(initialState, middleware) {
     this.nextSubscriberCalls = [];
 
     this.computedState = {};
+    this.computedStateDepths = {};
     this.setState(initialState !== undefined ? initialState : {});
     
     // call any middleware constructors
@@ -192,6 +193,9 @@ Store.prototype.subscribeToState = function subscribeToState(selectors, listener
         // call listener with all the state values
         processedListener(stateValues);
     };
+
+    // find the computed dependency depth for these selectors and attach it to the subscription function
+    stateChangeListener.dependencyDepth = this.findComputedStateDependencyDepth(selectors);
     
     for (i = 0; i < processedSelectors.length; i++) {
         this.subscriptions.subscribeSelector(processedSelectors[i], stateChangeListener);
@@ -222,11 +226,21 @@ Store.prototype.callSubscribersUnderSelector = function callSubscribersUnderSele
     }
 };
 
-Store.prototype.callSubscribers = function callSubscribers() {
-    for (var i = 0; i < this.nextSubscriberCalls.length; i++) {
-        this.nextSubscriberCalls[i]();
+function subscriberSorter(a, b) {
+    if (a.dependencyDepth < b.dependencyDepth) {
+        return -1;
+    } else if (a.dependencyDepth === b.dependencyDepth) {
+        return 0;
+    } else {
+        return 1;
     }
-    this.nextSubscriberCalls.length = 0;
+}
+Store.prototype.callSubscribers = function callSubscribers() {
+    this.nextSubscriberCalls.sort(subscriberSorter);
+    while (this.nextSubscriberCalls.length > 0) {
+        var subscriber = this.nextSubscriberCalls.shift(1); // pull the next subscriber from front of the array
+        subscriber();
+    }
 };
 
 Store.prototype.addComputed = function addComputed(computedLabel, selectors, computator) {
@@ -238,6 +252,10 @@ Store.prototype.addComputed = function addComputed(computedLabel, selectors, com
     for (var i = 0; i < selectors.length; i++) {
         stateValues.push(this.getPartialState(selectors[i]));
     }
+
+    // find this computed state's dependency depth on other computed states, and set it +1 for itself being computed
+    var dependencyDepth = this.findComputedStateDependencyDepth(selectors);
+    this.computedStateDepths[computedLabel] = dependencyDepth + 1; // set this computed state's dependency depth to the max found + 1
 
     var computedStateSelector = [COMPUTED_FLAG, computedLabel];
 
@@ -254,4 +272,15 @@ Store.prototype.addComputed = function addComputed(computedLabel, selectors, com
     );
 
     return computedStateSelector;
+};
+
+// findComputedStateDependencyDepth determines maximum nested depth of computed state dependencies exist in an array of selectors
+Store.prototype.findComputedStateDependencyDepth = function findComputedStateDependencyDepth(selectors) {
+    var dependencyDepths = [0]; // represent any non-computed states selected
+    for (var i = 0; i < selectors.length; i++) {
+        if (selectors[i][0] === COMPUTED_FLAG) {
+            dependencyDepths.push(this.computedStateDepths[selectors[i][1]]);
+        }
+    }
+    return Math.max.apply(null, dependencyDepths);
 };
