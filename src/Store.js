@@ -21,6 +21,8 @@ function testSelectorValidity(selector, functionName) {
 
 export default function Store(initialState, middleware) {
     this.listeners = {};
+    this.isDispatching = false;
+    this.queuedDispatches = [];
     this.subscriptions = new TreeSubscription(this);
     this.eventOptions = this.createEventOptions();
     this.middleware = middleware || [];
@@ -124,7 +126,22 @@ Store.prototype.off = function off(event, listener) {
     }
 };
 
+function callListeners(listeners, payload, eventOptions) {
+    for (var i = 0; i < listeners.length; i++) {
+        try {
+            listeners[i](payload, eventOptions);
+            // eslint-disable-next-line no-empty
+        } catch(e) {}
+    }
+}
 Store.prototype.dispatch = function dispatch(event, payload) {
+    if (this.isDispatching) {
+        this.queuedDispatches.push({event, payload});
+        return;
+    }
+
+    this.isDispatching = true;
+
     var processed = this.callMiddleware('dispatch', [event, payload]);
     var processedEvent = processed[FIRST_INDEX];
     var processedPayload = processed[SECOND_INDEX];
@@ -132,9 +149,14 @@ Store.prototype.dispatch = function dispatch(event, payload) {
     var listeners = this.listeners[processedEvent];
     if (listeners !== undefined) {
         var eventOptions = this.getEventOptions();
-        for (var i = 0; i < listeners.length; i++) {
-            listeners[i](processedPayload, eventOptions);
-        }
+        callListeners(listeners, processedPayload, eventOptions);
+    }
+
+    this.isDispatching = false;
+
+    if (this.queuedDispatches.length) {
+        const {event, payload} = this.queuedDispatches.shift();
+        this.dispatch(event, payload);
     }
 };
 
