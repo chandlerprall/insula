@@ -172,6 +172,46 @@ describe('Store', () => {
             store.on(EVENT, listener1);
             store.off(EVENT, listener2);
         });
+
+        it('calls all listeners for an event before the next event is dispatched', () => {
+            expect.assertions(7);
+
+            const payload1 = {};
+            const payload2 = {};
+
+            const store = new Store();
+            const listener1 = jest.fn(() => {store.dispatch('two', payload2)});
+            const listener2 = jest.fn(() => {expect(listener3).not.toHaveBeenCalled()});
+            const listener3 = jest.fn();
+
+            store.on('one', listener1);
+            store.on('one', listener2);
+            store.on('two', listener3);
+
+            store.dispatch('one', payload1);
+
+            expect(listener1).toHaveBeenCalledTimes(1);
+            expect(listener1.mock.calls[0][0]).toBe(payload1);
+            expect(listener2).toHaveBeenCalledTimes(1);
+            expect(listener2.mock.calls[0][0]).toBe(payload1);
+
+            expect(listener3).toHaveBeenCalledTimes(1);
+            expect(listener3.mock.calls[0][0]).toBe(payload2);
+        });
+
+        it('continues calling listeners even if one fails', () => {
+            const store = new Store();
+            const listener1 = jest.fn(() => {throw new Error()});
+            const listener2 = jest.fn();
+
+            store.on('event', listener1);
+            store.on('event', listener2);
+
+            store.dispatch('event');
+
+            expect(listener1).toHaveBeenCalledTimes(1);
+            expect(listener2).toHaveBeenCalledTimes(1);
+        });
     });
     
     describe('State updating', () => {
